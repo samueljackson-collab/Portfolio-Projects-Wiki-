@@ -1,0 +1,5 @@
+{
+  "name": "Project Wiki Viewer",
+  "description": "A web application to browse detailed Wiki.js-style pages for a portfolio of projects, generated from a structured JSON data source.",
+  "requestFramePermissions": []
+}
