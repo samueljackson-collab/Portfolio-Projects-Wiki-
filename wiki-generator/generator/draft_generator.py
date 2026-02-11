@@ -100,7 +100,7 @@ class DraftGenerator:
             raise ValueError("GEMINI_API_KEY environment variable not set")
 
         url = (f"https://generativelanguage.googleapis.com/v1beta/"
-               f"models/{model}:generateContent?key={api_key}")
+               f"models/{model}:generateContent")
 
         payload = {
             "system_instruction": {
@@ -119,19 +119,20 @@ class DraftGenerator:
         data = json.dumps(payload).encode()
         req = urllib.request.Request(
             url, data=data,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json",
+                     "x-goog-api-key": api_key},
             method="POST"
         )
 
         try:
             with urllib.request.urlopen(req, timeout=120) as resp:
                 result = json.loads(resp.read().decode())
-                return result["candidates"][0]["content"]["parts"][0]["text"]
+                return _extract_gemini_text(result)
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                raise RateLimitError("Gemini rate limit exceeded")
+                raise RateLimitError("Gemini rate limit exceeded") from e
             body = e.read().decode() if e.readable() else str(e)
-            raise RuntimeError(f"Gemini API error {e.code}: {body}")
+            raise RuntimeError(f"Gemini API error {e.code}: {body}") from e
 
     def _call_groq(self, model: str, system_prompt: str,
                    user_prompt: str) -> str:
@@ -198,9 +199,15 @@ class DraftGenerator:
             method="POST"
         )
 
-        with urllib.request.urlopen(req, timeout=300) as resp:
-            result = json.loads(resp.read().decode())
-            return result.get("response", "")
+        try:
+            with urllib.request.urlopen(req, timeout=300) as resp:
+                result = json.loads(resp.read().decode())
+                return result.get("response", "")
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                raise RateLimitError("Ollama rate limit exceeded") from e
+            body = e.read().decode() if e.readable() else str(e)
+            raise RuntimeError(f"Ollama API error {e.code}: {body}") from e
 
     def _parse_json_response(self, raw: str) -> dict:
         """Extract and parse JSON from AI response, handling markdown fences."""
@@ -214,6 +221,48 @@ class DraftGenerator:
             raw = re.sub(r'\n?```\s*$', '', raw)
 
         return json.loads(raw)
+
+
+def _extract_gemini_text(result: dict) -> str:
+    """Safely extract text from a Gemini response payload."""
+    path = 'result["candidates"][0]["content"]["parts"][0]["text"]'
+
+    candidates = result.get("candidates")
+    if not isinstance(candidates, list) or not candidates:
+        raise RuntimeError(
+            f"Gemini response missing non-empty candidates list at {path}. "
+            f"Full response: {json.dumps(result, ensure_ascii=False)}"
+        )
+
+    first_candidate = candidates[0]
+    if not isinstance(first_candidate, dict):
+        raise RuntimeError(
+            f"Gemini response candidate is not an object at {path}. "
+            f"Full response: {json.dumps(result, ensure_ascii=False)}"
+        )
+
+    content = first_candidate.get("content")
+    if not isinstance(content, dict):
+        raise RuntimeError(
+            f"Gemini response missing content object at {path}. "
+            f"Full response: {json.dumps(result, ensure_ascii=False)}"
+        )
+
+    parts = content.get("parts")
+    if not isinstance(parts, list) or not parts:
+        raise RuntimeError(
+            f"Gemini response missing non-empty parts list at {path}. "
+            f"Full response: {json.dumps(result, ensure_ascii=False)}"
+        )
+
+    first_part = parts[0]
+    if not isinstance(first_part, dict) or "text" not in first_part:
+        raise RuntimeError(
+            f"Gemini response missing text field at {path}. "
+            f"Full response: {json.dumps(result, ensure_ascii=False)}"
+        )
+
+    return str(first_part["text"])
 
 
 class RateLimitError(Exception):

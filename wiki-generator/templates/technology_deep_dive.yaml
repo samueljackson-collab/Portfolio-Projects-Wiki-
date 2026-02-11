@@ -19,7 +19,7 @@ system_prompt: |
   - Benefits: 4-6 bullet points
   - Best practices: 3-5 actionable items
   - Anti-patterns: 3-5 common mistakes
-  - Learning resources: 3 real, verifiable URLs with descriptive link text
+  - Learning resources: 3 real, verifiable URLs with descriptive link text (all URLs are validated and non-2xx links are flagged)
   - Match the tone of the existing deep dives (provided as examples)
 
 user_prompt: |

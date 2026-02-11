@@ -18,6 +18,9 @@ import logging
 import os
 import re
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -86,19 +89,30 @@ Return ONLY the JSON object, no markdown fences or explanation."""
             logger.warning("ANTHROPIC_API_KEY not set. Skipping Opus review.")
             return draft
 
+        sanitized_draft = _sanitize_for_prompt(draft, max_depth=3)
+        sanitized_examples = _sanitize_for_prompt(example_entries[:2], max_depth=3)
+
         user_prompt = self.REVIEW_USER_TEMPLATE.format(
-            draft_json=json.dumps(draft, indent=2)[:6000],
+            draft_json=json.dumps(sanitized_draft, indent=2),
             change_type=change_type,
             repo_name=repo_name,
             repo_description=repo_description,
             languages=languages,
-            example_entries=json.dumps(example_entries[:2], indent=2)[:4000],
+            example_entries=json.dumps(sanitized_examples, indent=2),
         )
 
         for attempt in range(3):
             try:
                 result = self._call_anthropic(user_prompt)
                 reviewed = self._parse_json_response(result)
+                validation = _validate_learning_resource_urls(reviewed, change_type)
+                if validation["invalid_urls"]:
+                    logger.warning(
+                        "Learning resource URL validation found issues for %s: %s",
+                        repo_name,
+                        ", ".join(validation["invalid_urls"]),
+                    )
+                    reviewed["_validation"] = validation
                 logger.info(f"Opus review completed for {repo_name}")
                 return reviewed
             except RateLimitError:
@@ -119,12 +133,11 @@ Return ONLY the JSON object, no markdown fences or explanation."""
                 logger.warning("Returning original draft after review failure")
                 return draft
 
+        logger.warning("All Anthropic rate-limit retries exhausted for %s. Returning original draft.", repo_name)
         return draft
 
     def _call_anthropic(self, user_prompt: str) -> str:
         """Call the Anthropic Messages API directly."""
-        import urllib.request
-
         url = "https://api.anthropic.com/v1/messages"
         payload = {
             "model": self.model,
@@ -158,9 +171,9 @@ Return ONLY the JSON object, no markdown fences or explanation."""
                 raise RuntimeError("No text content in Anthropic response")
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                raise RateLimitError("Anthropic rate limit exceeded")
+                raise RateLimitError("Anthropic rate limit exceeded") from e
             body = e.read().decode() if e.readable() else str(e)
-            raise RuntimeError(f"Anthropic API error {e.code}: {body}")
+            raise RuntimeError(f"Anthropic API error {e.code}: {body}") from e
 
     def _parse_json_response(self, raw: str) -> dict:
         """Extract and parse JSON from response."""
@@ -169,6 +182,104 @@ Return ONLY the JSON object, no markdown fences or explanation."""
             raw = re.sub(r'^```\w*\s*\n?', '', raw)
             raw = re.sub(r'\n?```\s*$', '', raw)
         return json.loads(raw)
+
+
+def _sanitize_for_prompt(value, *, max_depth: int = 3, max_items: int = 8,
+                         max_string_length: int = 600):
+    """Create a truncated-safe object suitable for JSON serialization."""
+    if max_depth < 0:
+        return "[truncated]"
+
+    if isinstance(value, dict):
+        out = {}
+        for idx, (k, v) in enumerate(value.items()):
+            if idx >= max_items:
+                out["__truncated_keys__"] = f"{len(value) - max_items} more keys"
+                break
+            out[k] = _sanitize_for_prompt(
+                v,
+                max_depth=max_depth - 1,
+                max_items=max_items,
+                max_string_length=max_string_length,
+            )
+        return out
+
+    if isinstance(value, list):
+        items = [
+            _sanitize_for_prompt(
+                item,
+                max_depth=max_depth - 1,
+                max_items=max_items,
+                max_string_length=max_string_length,
+            )
+            for item in value[:max_items]
+        ]
+        if len(value) > max_items:
+            items.append(f"[truncated {len(value) - max_items} more items]")
+        return items
+
+    if isinstance(value, str):
+        if len(value) <= max_string_length:
+            return value
+        return value[:max_string_length] + "...[truncated]"
+
+    return value
+
+
+def _extract_urls(resource: str) -> list[str]:
+    """Extract URLs from a markdown link or plain URL string."""
+    match = re.search(r"\((https?://[^)]+)\)", resource)
+    if match:
+        return [match.group(1)]
+
+    urls = re.findall(r"https?://[^\s]+", resource)
+    return [u.rstrip('.,;') for u in urls]
+
+
+def _validate_learning_resource_urls(reviewed: dict, change_type: str) -> dict:
+    """Validate learning resource URLs for technology deep-dive entries."""
+    result = {"checked_urls": [], "invalid_urls": [], "status": "skipped"}
+    if change_type != "new_tech":
+        return result
+
+    value = reviewed.get("value", reviewed)
+    learning_resources = value.get("learning_resources", []) if isinstance(value, dict) else []
+    if not isinstance(learning_resources, list):
+        return result
+
+    result["status"] = "passed"
+    for resource in learning_resources:
+        if not isinstance(resource, str):
+            continue
+        urls = _extract_urls(resource)
+        for url in urls:
+            result["checked_urls"].append(url)
+            parsed = urllib.parse.urlparse(url)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                result["invalid_urls"].append(f"{url} (invalid format)")
+                result["status"] = "failed"
+                continue
+
+            req = urllib.request.Request(url, method="HEAD")
+            try:
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    status_code = getattr(resp, "status", 200)
+                    if status_code < 200 or status_code >= 300:
+                        result["invalid_urls"].append(f"{url} (HTTP {status_code})")
+                        result["status"] = "failed"
+            except Exception:
+                try:
+                    fallback_req = urllib.request.Request(url, method="GET")
+                    with urllib.request.urlopen(fallback_req, timeout=10) as resp:
+                        status_code = getattr(resp, "status", 200)
+                        if status_code < 200 or status_code >= 300:
+                            result["invalid_urls"].append(f"{url} (HTTP {status_code})")
+                            result["status"] = "failed"
+                except Exception as e:
+                    result["invalid_urls"].append(f"{url} ({e})")
+                    result["status"] = "failed"
+
+    return result
 
 
 class RateLimitError(Exception):

@@ -59,19 +59,22 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TARGET_REPO: ${{ inputs.target_repo }}
+          SCAN_ONLY: ${{ inputs.scan_only }}
+          SKIP_REVIEW: ${{ inputs.skip_review }}
         run: |
           cd wiki-generator
-          ARGS=""
-          if [ "${{ inputs.scan_only }}" = "true" ]; then
-            ARGS="$ARGS --scan-only"
+          ARGS=(--verbose)
+          if [ "$SCAN_ONLY" = "true" ]; then
+            ARGS+=(--scan-only)
           fi
-          if [ "${{ inputs.skip_review }}" = "true" ]; then
-            ARGS="$ARGS --skip-review"
+          if [ "$SKIP_REVIEW" = "true" ]; then
+            ARGS+=(--skip-review)
           fi
-          if [ -n "${{ inputs.target_repo }}" ]; then
-            ARGS="$ARGS --repo '${{ inputs.target_repo }}'"
+          if [ -n "$TARGET_REPO" ]; then
+            ARGS+=(--repo "$TARGET_REPO")
           fi
-          python pipeline.py $ARGS --verbose
+          python pipeline.py "${ARGS[@]}"
 
       - name: Upload pipeline results
         if: always()

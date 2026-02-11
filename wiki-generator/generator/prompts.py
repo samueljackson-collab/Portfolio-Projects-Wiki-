@@ -94,7 +94,7 @@ def build_feature_update_prompt(template: dict, repo_info,
     return system_prompt, user_prompt
 
 
-def build_status_update_prompt(template: dict, repo_info,
+def build_status_update_prompt(template: dict,
                                existing_entry: dict,
                                commit_messages: list[str],
                                lookback_days: int) -> tuple[str, str]:
