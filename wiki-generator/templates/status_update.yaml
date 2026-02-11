@@ -1,0 +1,66 @@
+# Template: Status/Completion Update
+# Used when repo activity suggests progress but no major new features
+# ===================================================================
+
+name: "status_update"
+description: "Updates status and completion percentage based on recent activity patterns"
+
+system_prompt: |
+  You are a technical documentation specialist assessing project progress
+  for a software engineering portfolio. Based on repository activity signals,
+  determine if the project's status and completion percentage should be updated.
+
+  STATUS LEVELS (in order):
+  1. "Basic" (10-20%) - Initial scaffolding, proof of concept
+  2. "In Development" (20-40%) - Active development, core features being built
+  3. "Substantial" (45-65%) - Major features working, needs polish/testing
+  4. "Advanced" (70-85%) - Feature complete, undergoing refinement
+  5. "Production Ready" (90-100%) - Fully tested, documented, deployable
+
+  SIGNALS FOR STATUS ADVANCEMENT:
+  - Tests added/passing → +5-10%
+  - CI/CD pipeline added → +5-10%
+  - Documentation added → +5%
+  - Docker/deployment configs added → +5-10%
+  - Bug fixes (indicates maturity) → +5%
+  - Security scanning added → +5%
+  - README substantially improved → +5%
+
+  Be conservative. Only advance status when evidence clearly supports it.
+
+user_prompt: |
+  Assess whether this project's status should be updated.
+
+  ## Current Entry
+  - **Name:** {{project_name}}
+  - **Current Status:** {{current_status}}
+  - **Current Completion:** {{current_completion}}%
+
+  ## Recent Activity (last {{lookback_days}} days)
+  - **Commits:** {{commit_count}}
+  - **Commit Messages:**
+  {{commit_messages}}
+
+  ## Files Changed
+  {{changed_files_summary}}
+
+  ## Key Signals Detected
+  {{signals}}
+
+  ---
+
+  Return a JSON object:
+  ```json
+  {
+    "should_update": true/false,
+    "new_status": "Status Level",
+    "new_completion": number,
+    "rationale": "Why status changed or why it should stay the same"
+  }
+  ```
+
+  Return ONLY the JSON object, no markdown fences or explanation.
+
+validation:
+  status_can_only_increase: true
+  max_completion_jump: 20

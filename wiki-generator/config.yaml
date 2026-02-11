@@ -1,0 +1,57 @@
+# Wiki Generator Configuration
+# =============================
+
+github:
+  # Your GitHub username - repos will be scanned under this account
+  username: "samueljackson-collab"
+  # Repos to exclude from scanning
+  exclude_repos:
+    - ".github"
+    - "Portfolio-Projects-Wiki-"
+  # Only include repos matching these topics/patterns (empty = all)
+  include_topics: []
+  # How far back to look for changes (days)
+  lookback_days: 7
+
+# State tracking - keeps track of what's already been processed
+state_file: "wiki-generator/.state/processed.json"
+
+# Draft AI Agent Configuration (Free/Cheap tier)
+# Supported: "gemini" (Google, free tier), "groq" (free tier), "ollama" (local)
+draft_agent:
+  provider: "gemini"
+  # Gemini free tier: 15 RPM, 1M TPM, 1500 RPD
+  model: "gemini-2.0-flash"
+  # Fallback if primary is rate-limited
+  fallback_provider: "groq"
+  fallback_model: "llama-3.3-70b-versatile"
+  # Temperature for creative drafting
+  temperature: 0.4
+  # Max retries on rate limit
+  max_retries: 3
+  retry_delay_seconds: 10
+
+# Review AI Agent Configuration (Claude Opus for quality)
+review_agent:
+  provider: "anthropic"
+  model: "claude-opus-4-20250514"
+  temperature: 0.2
+  # Max tokens for review response
+  max_tokens: 8192
+
+# Output configuration
+output:
+  # Where to write the generated/updated constants
+  constants_file: "constants.ts"
+  # Where to store drafts before review
+  drafts_dir: "wiki-generator/.drafts"
+  # Where to store reviewed entries ready for merge
+  reviewed_dir: "wiki-generator/.reviewed"
+
+# Template selection rules
+# Maps detected change types to template files
+template_rules:
+  new_repository: "templates/new_repo.yaml"
+  new_feature: "templates/new_feature.yaml"
+  status_update: "templates/status_update.yaml"
+  technology_deep_dive: "templates/technology_deep_dive.yaml"
