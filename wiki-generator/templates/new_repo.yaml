@@ -92,11 +92,11 @@ user_prompt: |
     description: string;  // 1-2 sentence technical summary
     status: "Production Ready" | "Advanced" | "Substantial" | "In Development" | "Basic";
     completion_percentage: number;
-    tags: string[];       // 5-8 relevant lowercase tags
+    tags: string[];       // 3-10 relevant lowercase tags
     github_path: string;  // "projects/<id>-<slug>"
-    technologies: string[];  // 4-6 key technologies, properly capitalized
-    features: string[];      // 4-6 key features, short descriptions
-    key_takeaways: string[]; // 3 lessons learned, complete sentences
+    technologies: string[];  // 2-8 key technologies, properly capitalized
+    features: string[];      // 3-8 key features, short descriptions
+    key_takeaways: string[]; // 3-5 lessons learned, complete sentences
     readme?: string;         // Formatted markdown README for the wiki
     adr?: string;            // Architecture Decision Record (ADR-001 format)
     threatModel?: string;    // STRIDE threat model in markdown

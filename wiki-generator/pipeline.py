@@ -26,9 +26,11 @@ Usage:
 """
 
 import argparse
+import ast
 import json
 import logging
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -74,7 +76,7 @@ class WikiPipeline:
             lookback_days=self.config["github"].get("lookback_days", 7),
         )
         self.state = StateTracker(
-            str(self.project_root / self.config["state_file"])
+            str(self._resolve_generator_path(self.config["state_file"]))
         )
         self.drafter = DraftGenerator(
             provider=self.config["draft_agent"]["provider"],
@@ -92,14 +94,28 @@ class WikiPipeline:
         )
 
         # Ensure output dirs exist
-        drafts_dir = self.project_root / self.config["output"]["drafts_dir"]
-        reviewed_dir = self.project_root / self.config["output"]["reviewed_dir"]
+        drafts_dir = self._resolve_generator_path(self.config["output"]["drafts_dir"])
+        reviewed_dir = self._resolve_generator_path(self.config["output"]["reviewed_dir"])
         drafts_dir.mkdir(parents=True, exist_ok=True)
         reviewed_dir.mkdir(parents=True, exist_ok=True)
 
+    def _resolve_generator_path(self, path_value: str) -> Path:
+        """Resolve a path relative to the wiki-generator directory."""
+        path = Path(path_value)
+        if path.is_absolute():
+            return path
+        return self.base_dir / path
+
+    def _resolve_repo_path(self, path_value: str) -> Path:
+        """Resolve a path relative to the repository root."""
+        path = Path(path_value)
+        if path.is_absolute():
+            return path
+        return self.project_root / path
+
     def load_existing_data(self) -> tuple[list[dict], dict]:
         """Load existing projects and tech deep dives from constants.ts."""
-        constants_path = self.project_root / self.config["output"]["constants_file"]
+        constants_path = self._resolve_repo_path(self.config["output"]["constants_file"])
         if not constants_path.exists():
             logger.warning("constants.ts not found, starting fresh")
             return [], {}
@@ -111,18 +127,18 @@ class WikiPipeline:
         projects_match = _extract_ts_array(content, "PROJECTS_DATA")
         if projects_match:
             try:
-                projects = json.loads(projects_match)
-            except json.JSONDecodeError:
-                logger.warning("Could not parse PROJECTS_DATA from constants.ts")
+                projects = _parse_ts_literal(projects_match)
+            except Exception as e:
+                logger.warning(f"Could not parse PROJECTS_DATA from constants.ts: {e}")
 
         # Extract tech deep dives keys (just the keys for comparison)
         tech_dives = {}
         tech_match = _extract_ts_object(content, "TECHNOLOGY_DEEP_DIVES")
         if tech_match:
             try:
-                tech_dives = json.loads(tech_match)
-            except json.JSONDecodeError:
-                logger.warning("Could not parse TECHNOLOGY_DEEP_DIVES")
+                tech_dives = _parse_ts_literal(tech_match)
+            except Exception as e:
+                logger.warning(f"Could not parse TECHNOLOGY_DEEP_DIVES: {e}")
 
         return projects, tech_dives
 
@@ -326,7 +342,7 @@ class WikiPipeline:
         elif change.change_type == "status_update":
             template = load_template(str(templates_dir / "status_update.yaml"))
             system, user = build_status_update_prompt(
-                template, change.repo_info, change.existing_entry,
+                template, change.existing_entry,
                 change.commit_messages,
                 self.config["github"].get("lookback_days", 7)
             )
@@ -350,14 +366,14 @@ class WikiPipeline:
 
     def _save_draft(self, change: ChangeDetection, draft: dict):
         """Save a draft to the drafts directory."""
-        drafts_dir = self.project_root / self.config["output"]["drafts_dir"]
+        drafts_dir = self._resolve_generator_path(self.config["output"]["drafts_dir"])
         filename = f"{change.change_type}_{change.repo_name}.json"
         filepath = drafts_dir / _sanitize_filename(filename)
         filepath.write_text(json.dumps(draft, indent=2))
 
     def _save_reviewed(self, change: ChangeDetection, reviewed: dict):
         """Save a reviewed entry to the reviewed directory."""
-        reviewed_dir = self.project_root / self.config["output"]["reviewed_dir"]
+        reviewed_dir = self._resolve_generator_path(self.config["output"]["reviewed_dir"])
         filename = f"{change.change_type}_{change.repo_name}.json"
         filepath = reviewed_dir / _sanitize_filename(filename)
         filepath.write_text(json.dumps(reviewed, indent=2))
@@ -410,27 +426,171 @@ class WikiPipeline:
         return "Review and manually merge into constants.ts."
 
 
+
+
+def _parse_ts_literal(literal: str):
+    """Parse TypeScript-like array/object literals into Python objects."""
+    normalized = _strip_js_comments(literal)
+    normalized = re.sub(r"\s+as\s+const\b", "", normalized)
+    normalized = re.sub(r",\s*([}\]])", r"\1", normalized)
+    normalized = re.sub(r"([\{,]\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:", r'\1"\2":', normalized)
+    normalized = re.sub(r"`([^`\\]*(?:\\.[^`\\]*)*)`", lambda m: repr(m.group(1)), normalized)
+    normalized = re.sub(r"\btrue\b", "True", normalized)
+    normalized = re.sub(r"\bfalse\b", "False", normalized)
+    normalized = re.sub(r"\bnull\b", "None", normalized)
+
+    return ast.literal_eval(normalized)
+
+
+def _strip_js_comments(content: str) -> str:
+    """Remove // and /* */ comments while preserving string content."""
+    out = []
+    in_string = None
+    escaped = False
+    in_line_comment = False
+    in_block_comment = False
+
+    i = 0
+    while i < len(content):
+        ch = content[i]
+        nxt = content[i + 1] if i + 1 < len(content) else ""
+
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+                out.append(ch)
+            i += 1
+            continue
+
+        if in_block_comment:
+            if ch == "*" and nxt == "/":
+                in_block_comment = False
+                i += 2
+                continue
+            i += 1
+            continue
+
+        if in_string:
+            out.append(ch)
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == in_string:
+                in_string = None
+            i += 1
+            continue
+
+        if ch == "/" and nxt == "/":
+            in_line_comment = True
+            i += 2
+            continue
+        if ch == "/" and nxt == "*":
+            in_block_comment = True
+            i += 2
+            continue
+
+        if ch in ('"', "'", "`"):
+            in_string = ch
+
+        out.append(ch)
+        i += 1
+
+    return "".join(out)
+
 def _extract_ts_array(content: str, var_name: str) -> str:
-    """Extract a JSON array from a TypeScript const declaration."""
-    import re
-    # Match: export const VAR_NAME: Type[] = [...]
-    pattern = rf'export\s+const\s+{var_name}\s*(?::\s*[^=]+)?\s*=\s*(\[[\s\S]*?\n\];)'
-    match = re.search(pattern, content)
-    if match:
-        arr_str = match.group(1).rstrip(';')
-        return arr_str
-    return ""
+    """Extract an array literal from a TypeScript const declaration."""
+    return _extract_ts_literal(content, var_name, "[", "]")
 
 
 def _extract_ts_object(content: str, var_name: str) -> str:
-    """Extract a JSON object from a TypeScript const declaration."""
-    import re
-    pattern = rf'export\s+const\s+{var_name}\s*(?::\s*[^=]+)?\s*=\s*(\{{[\s\S]*?\n\}};)'
-    match = re.search(pattern, content)
-    if match:
-        obj_str = match.group(1).rstrip(';')
-        return obj_str
-    return ""
+    """Extract an object literal from a TypeScript const declaration."""
+    return _extract_ts_literal(content, var_name, "{", "}")
+
+
+def _extract_ts_literal(content: str, var_name: str, opening: str, closing: str) -> str:
+    """Extract a TS literal by scanning with nesting and string awareness."""
+    declaration = f"export const {var_name}"
+    start = content.find(declaration)
+    if start == -1:
+        return ""
+
+    equals = content.find("=", start)
+    if equals == -1:
+        return ""
+
+    literal_start = content.find(opening, equals)
+    if literal_start == -1:
+        return ""
+
+    literal_end = _find_matching_bracket(content, literal_start, opening, closing)
+    if literal_end == -1:
+        return ""
+
+    return content[literal_start:literal_end + 1].strip()
+
+
+def _find_matching_bracket(content: str, start: int, opening: str, closing: str) -> int:
+    """Return index of matching closing bracket while skipping strings/comments."""
+    depth = 0
+    in_string = None
+    escaped = False
+    in_line_comment = False
+    in_block_comment = False
+
+    i = start
+    while i < len(content):
+        ch = content[i]
+        nxt = content[i + 1] if i + 1 < len(content) else ""
+
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+            i += 1
+            continue
+
+        if in_block_comment:
+            if ch == "*" and nxt == "/":
+                in_block_comment = False
+                i += 2
+                continue
+            i += 1
+            continue
+
+        if in_string:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == in_string:
+                in_string = None
+            i += 1
+            continue
+
+        if ch == "/" and nxt == "/":
+            in_line_comment = True
+            i += 2
+            continue
+        if ch == "/" and nxt == "*":
+            in_block_comment = True
+            i += 2
+            continue
+
+        if ch in ('"', "'", "`"):
+            in_string = ch
+            i += 1
+            continue
+
+        if ch == opening:
+            depth += 1
+        elif ch == closing:
+            depth -= 1
+            if depth == 0:
+                return i
+
+        i += 1
+
+    return -1
 
 
 def _sanitize_filename(name: str) -> str:

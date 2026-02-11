@@ -357,9 +357,9 @@ class StateTracker:
         entry = self.state["processed_repos"].get(key, {})
         if not entry:
             return False
-        if commit_sha and entry.get("last_sha") == commit_sha:
+        if not commit_sha:
             return True
-        return False
+        return entry.get("last_sha") == commit_sha
 
     def mark_processed(self, repo_name: str, change_type: str,
                        commit_sha: str = ""):

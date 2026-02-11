@@ -44,7 +44,11 @@ def list_pending():
     print(f"{'='*60}\n")
 
     for entry_file in entries:
-        data = json.loads(entry_file.read_text())
+        try:
+            data = json.loads(entry_file.read_text())
+        except json.JSONDecodeError as e:
+            print(f"Warning: Skipping malformed JSON '{entry_file.name}': {e}")
+            continue
         change_type = data.get("change_type", "unknown")
         repo_name = data.get("repo_name", "unknown")
         generated_at = data.get("generated_at", "unknown")
@@ -81,7 +85,11 @@ def generate_ts_snippet(filename: str = None):
     output_dir = Path(__file__).parent / ".output"
 
     if filename:
-        files = [output_dir / filename]
+        target_file = output_dir / filename
+        if not target_file.exists():
+            print(f"Error: Entry file not found: {filename}")
+            sys.exit(1)
+        files = [target_file]
     else:
         files = sorted(output_dir.glob("*.json"))
         files = [f for f in files if f.name != "last_run.json"]
@@ -98,7 +106,11 @@ def generate_ts_snippet(filename: str = None):
     for filepath in files:
         if not filepath.exists():
             continue
-        data = json.loads(filepath.read_text())
+        try:
+            data = json.loads(filepath.read_text())
+        except json.JSONDecodeError as e:
+            print(f"Warning: Skipping malformed JSON '{filepath.name}': {e}")
+            continue
         change_type = data.get("change_type", "")
         entry = data.get("entry", {})
 
