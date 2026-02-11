@@ -1,6 +1,8 @@
+
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import type { Project, ProblemContext, ArchitectureDefinition, KeyConcept } from '../types';
-import { PROBLEM_CONTEXTS, TECHNOLOGY_DEEP_DIVES, ARCHITECTURE_DEFINITIONS, TECHNOLOGY_METADATA } from '../constants';
+// FIX: Corrected import paths and added missing imports that were causing errors.
+import { PROJECTS_DATA, TECHNOLOGY_DEEP_DIVES, PROBLEM_CONTEXTS, ARCHITECTURE_DEFINITIONS } from '../constants';
 import ProgressBar from './ProgressBar';
 import CodeBlock from './CodeBlock';
 import TechStackGraph from './TechStackGraph';
@@ -94,7 +96,7 @@ const statusConfig: Record<Project['status'], { color: string }> = {
   "Basic": { color: 'bg-gray-600' },
 };
 
-const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onSelectProject }) => {
+export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onSelectProject }) => {
   const [activeTag, setActiveTag] = React.useState<string | null>(null);
   
   const getStorageKey = (slug: string) => `project-wiki-active-tag-${slug}`;
@@ -149,6 +151,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onS
 
   const { context: problemContext, architecture: architectureDef } = getProjectContent();
   const projectStatusConfig = statusConfig[project.status];
+  
+  const tagButtonBaseClasses = 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 ease-in-out transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:ring-teal-400 hover:-translate-y-px';
 
   return (
     <article key={project.slug} className="max-w-4xl mx-auto animate-fade-in">
@@ -268,12 +272,35 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onS
       <Section title="Tech Stack Selection" icon={<ToolsIcon />}>
           <div className="mb-4 flex flex-wrap gap-2 items-center">
             <span className="text-sm font-semibold text-gray-400 mr-2">Filter by tag:</span>
-            <button onClick={() => handleSetActiveTag(null)} className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 ${!activeTag ? 'bg-teal-500 text-white' : 'bg-gray-700 text-cyan-200 hover:bg-gray-600'}`} aria-pressed={!activeTag}>All</button>
-            {project.tags.map(tag => ( <button key={tag} onClick={() => handleSetActiveTag(tag === activeTag ? null : tag)} className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 ${activeTag === tag ? 'bg-teal-500 text-white' : 'bg-gray-700 text-cyan-200 hover:bg-gray-600'}`} aria-pressed={activeTag === tag}><TagIcon tag={tag} /> {tag}</button>))}
+            <button onClick={() => handleSetActiveTag(null)} className={`${tagButtonBaseClasses} ${!activeTag ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'bg-gray-700 text-cyan-200 hover:bg-gray-600'}`} aria-pressed={!activeTag}>All</button>
+            {project.tags.map(tag => ( <button key={tag} onClick={() => handleSetActiveTag(tag === activeTag ? null : tag)} className={`${tagButtonBaseClasses} ${activeTag === tag ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'bg-gray-700 text-cyan-200 hover:bg-gray-600'}`} aria-pressed={activeTag === tag}><TagIcon tag={tag} /> {tag}</button>))}
           </div>
           <TechStackGraph project={project} activeTag={activeTag} allProjects={allProjects} />
           <h3 className="text-xl font-semibold mt-6 mb-3 text-white">Why This Stack?</h3>
           <p>This combination was chosen to balance <strong>developer productivity</strong>, <strong>operational simplicity</strong>, and <strong>production reliability</strong>. Each component integrates seamlessly while serving a specific purpose in the overall architecture.</p>
+      </Section>
+
+      <Section title="Key Features" icon={<BookIcon />}>
+        <div className="space-y-3">
+          {project.features.map((feature, index) => (
+            <details key={index} id={`feature-walkthrough-${index}`} className="bg-gray-800/50 rounded-lg group transition-all duration-300 hover:bg-gray-800/70 scroll-mt-20">
+              <summary className="p-4 list-none flex items-center justify-between cursor-pointer font-semibold text-white">
+                <span className="flex items-center">
+                  <CheckCircleIcon />
+                  <span className="ml-3">{feature}</span>
+                </span>
+                <svg className="w-5 h-5 text-gray-400 transform group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div className="p-4 border-t border-gray-700 text-gray-400 text-sm">
+                <p>
+                  This section details the implementation of the '<strong>{feature}</strong>' feature. It covers the core logic, data models, and service interactions. The component is designed for modularity and follows established design patterns to ensure maintainability and testability within the project's architecture.
+                </p>
+              </div>
+            </details>
+          ))}
+        </div>
       </Section>
 
       <Section title="Technology Deep Dives" icon={<MicroscopeIcon />}>
@@ -329,7 +356,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onS
                     
                     {dive.best_practices && <><strong className="text-gray-200 mt-4 block">Best Practices:</strong><ul className="my-2 space-y-2"> {dive.best_practices.map(bp => <li key={bp} className="flex items-start"><CheckCircleIcon/><span>{bp}</span></li>)} </ul></>}
                     
-                    {dive.anti_patterns && <><strong className="text-gray-200 mt-4 block">Anti-Patterns to Avoid:</strong><ul className="my-2 space-y-2"> {dive.anti_patterns.map(ap => <li key={ap} className="flex items-start"><XCircleIcon/><span>{ap}</span></li>)} </ul></>}
+                    {dive.anti_patterns && <><strong className="text-gray-200 mt-4 block">Common Pitfalls:</strong><ul className="my-2 space-y-2"> {dive.anti_patterns.map(ap => <li key={ap} className="flex items-start p-2 rounded bg-red-900/20 border-l-2 border-red-500/70"><XCircleIcon/><span>{ap}</span></li>)} </ul></>}
                     
                     {relatedFeatures.length > 0 && (
                         <>
@@ -381,29 +408,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onS
             <CodeBlock language="yaml" code={project.cicdWorkflow.content} />
         </Section>
       )}
-
-      <Section title="Key Features" icon={<BookIcon />}>
-        <div className="space-y-3">
-          {project.features.map((feature, index) => (
-            <details key={index} id={`feature-walkthrough-${index}`} className="bg-gray-800/50 rounded-lg group transition-all duration-300 hover:bg-gray-800/70 scroll-mt-20">
-              <summary className="p-4 list-none flex items-center justify-between cursor-pointer font-semibold text-white">
-                <span className="flex items-center">
-                  <CheckCircleIcon />
-                  <span className="ml-3">{feature}</span>
-                </span>
-                <svg className="w-5 h-5 text-gray-400 transform group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </summary>
-              <div className="p-4 border-t border-gray-700 text-gray-400 text-sm">
-                <p>
-                  This section details the implementation of the '<strong>{feature}</strong>' feature. It covers the core logic, data models, and service interactions. The component is designed for modularity and follows established design patterns to ensure maintainability and testability within the project's architecture.
-                </p>
-              </div>
-            </details>
-          ))}
-        </div>
-      </Section>
       
       <Section title="UI Mockups" icon={<PhotographIcon />}>
         <p className="mb-6">Illustrative mockups representing potential user interfaces for this project.</p>
@@ -485,5 +489,3 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onS
     </article>
   );
 };
-
-export default ProjectDetail;

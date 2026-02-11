@@ -1,6 +1,8 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
-import ProjectDetail from './components/ProjectDetail';
+// FIX: Changed to a named import to resolve the module loading error.
+import { ProjectDetail } from './components/ProjectDetail';
 import { PROJECTS_DATA } from './constants';
 import type { Project } from './types';
 

@@ -40,16 +40,26 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
     };
   }, [searchQuery]);
 
-  // Handle clicks outside of sidebar to close it on mobile
+  // Handle clicks outside of sidebar and Escape key to close on mobile
   useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
           if (isOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
               onClose();
           }
       };
+
+      const handleKeyDown = (event: KeyboardEvent) => {
+          if (isOpen && event.key === 'Escape') {
+              onClose();
+          }
+      };
+      
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+
       return () => {
           document.removeEventListener('mousedown', handleClickOutside);
+          document.removeEventListener('keydown', handleKeyDown);
       };
   }, [isOpen, onClose]);
 
@@ -96,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={onClose}></div>}
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={onClose} aria-hidden="true"></div>}
       <aside ref={sidebarRef} className={sidebarClasses}>
         <div className="flex-shrink-0">
           <h1 className="text-2xl font-bold text-white mb-4 border-b border-gray-600 pb-4">
@@ -129,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
                           <li key={project.id} className="mb-1">
                             <button
                               onClick={() => onSelectProject(project.slug)}
-                              className={`w-full text-left p-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 ${
+                              className={`w-full text-left p-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-transparent focus:text-white focus:bg-gray-700 ${
                                 activeSlug === project.slug ? 'bg-gray-700 text-white font-semibold' : ''
                               }`}
                             >

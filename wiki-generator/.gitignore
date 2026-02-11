@@ -1,7 +1,0 @@
-# Wiki Generator - Ignore generated/cached files
-.state/
-.drafts/
-.reviewed/
-.output/
-__pycache__/
-*.pyc

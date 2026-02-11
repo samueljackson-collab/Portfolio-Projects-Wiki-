@@ -115,6 +115,8 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
         backgroundPosition: showLineNumbers ? '3.5rem 0' : '0 0'
     };
     
+    const buttonBaseClasses = 'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900/50 focus:ring-teal-400';
+
     return (
         <div className={`rounded-lg my-4 relative group ${THEMES[theme].class}`}>
             <div className="absolute top-2 right-2 flex items-center space-x-3 z-10">
@@ -131,7 +133,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                 <div className="flex items-center space-x-1 p-0.5 rounded-md bg-gray-900/30">
                     <button
                         onClick={handleToggleIndentGuides}
-                        className={`p-1.5 rounded transition-colors ${showIndentGuides ? 'bg-teal-500 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                        className={`p-1.5 rounded transition-colors ${buttonBaseClasses} ${showIndentGuides ? 'bg-teal-500 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
                         aria-pressed={showIndentGuides}
                         aria-label="Toggle indentation guides"
                         title="Toggle indentation guides"
@@ -140,7 +142,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                     </button>
                     <button
                         onClick={handleToggleLineNumbers}
-                        className={`p-1.5 rounded transition-colors ${showLineNumbers ? 'bg-teal-500 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                        className={`p-1.5 rounded transition-colors ${buttonBaseClasses} ${showLineNumbers ? 'bg-teal-500 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
                         aria-pressed={showLineNumbers}
                         aria-label="Toggle line numbers"
                         title="Toggle line numbers"
@@ -151,7 +153,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                         <button
                             key={themeKey}
                             onClick={() => handleSetTheme(themeKey)}
-                            className={`px-2 py-0.5 text-xs rounded transition-colors ${theme === themeKey ? 'bg-teal-500 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                            className={`px-2 py-0.5 text-xs rounded transition-colors ${buttonBaseClasses} ${theme === themeKey ? 'bg-teal-500 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
                             aria-pressed={theme === themeKey}
                             aria-label={`Switch to ${THEMES[themeKey].name} theme`}
                         >
@@ -163,12 +165,13 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                     <span 
                         className={`text-xs text-teal-400 transition-opacity duration-300 ${isCopied ? 'opacity-100' : 'opacity-0'}`}
                         style={{ transform: 'translateX(-4px)' }}
+                        aria-live="polite"
                     >
                         Copied!
                     </span>
                     <button
                         onClick={handleCopy}
-                        className="p-1.5 rounded-md bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 focus:outline-none focus:ring-2 focus:ring-teal-500 opacity-0 group-hover:opacity-100"
+                        className={`p-1.5 rounded-md bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 opacity-0 group-hover:opacity-100 ${buttonBaseClasses}`}
                         aria-label="Copy code to clipboard"
                         title="Copy code"
                     >
@@ -195,7 +198,8 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                 <div className={`border-t border-white/10 rounded-b-lg ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-800/50'}`}>
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="w-full text-center py-2 text-xs text-gray-400 hover:text-white font-semibold uppercase tracking-wider focus:outline-none"
+                        className={`w-full text-center py-2 text-xs text-gray-400 hover:text-white font-semibold uppercase tracking-wider ${buttonBaseClasses}`}
+                        aria-expanded={isExpanded}
                     >
                         {isExpanded ? 'Show Less' : `Show More (${lines.length - 10} more lines)`}
                     </button>

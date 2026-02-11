@@ -1,3 +1,4 @@
+
 import type { Project, TechnologyDeepDive, ProblemContext, ArchitectureDefinition, TechnologyMetadata } from './types';
 
 export const PROJECTS_DATA: Project[] = [
@@ -389,6 +390,8 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "A ride-sharing company uses Flink to process a real-time stream of GPS locations from its drivers. Flink calculates dynamic pricing based on demand in specific geographic areas (windows) and pushes updates to the rider app in real-time.",
         "code_example": "```python\n# PyFlink example: 5-second tumbling window word count\nfrom pyflink.datastream import StreamExecutionEnvironment\nfrom pyflink.table import StreamTableEnvironment, DataTypes\nfrom pyflink.table.window import Tumble\n\nenv = StreamExecutionEnvironment.get_execution_environment()\nt_env = StreamTableEnvironment.create(env)\n\n# Define source and sink tables (e.g., from Kafka)\n# ...\n\nmy_table = t_env.from_path(\"source\")\n\n# Perform a windowed aggregation\nresult = my_table \\\n    .window(Tumble.over(\"5.seconds\").on(\"rowtime\").alias(\"w\")) \\\n    .group_by(\"w, word\") \\\n    .select(\"word, count(1)\")\n```",
         "benefits": ["True Streaming with Low Latency", "High Throughput and Scalability", "Fault Tolerance with Exactly-Once Guarantees", "Unified API for Batch and Stream Processing"],
+        "best_practices": ["Choose the correct time characteristic (event, processing)", "Manage state with checkpoints and savepoints", "Use Flink SQL/Table API for high-level abstractions", "Monitor backpressure to identify bottlenecks"],
+        "anti_patterns": ["Using large objects as state", "Not enabling checkpointing for stateful jobs", "Ignoring watermarks for event time processing", "Mixing blocking calls in streaming functions"],
         "learning_resources": ["[Apache Flink Documentation](https://nightlies.apache.org/flink/flink-docs-stable/)", "[Flink Tutorials](https://nightlies.apache.org/flink/flink-docs-stable/try-flink/flink-sql.html)", "[Stream Processing with Apache Flink (Book)](https://www.oreilly.com/library/view/stream-processing-with/9781491974285/)"]
     },
     "mlops": {
@@ -407,6 +410,8 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "An e-commerce company has a product recommendation model. An MLOps pipeline automatically retrains the model weekly on new user interaction data, runs evaluation tests, and if the new model performs better, deploys it as a canary release to serve a small percentage of users before a full rollout.",
         "code_example": "```yaml\n# Conceptual GitHub Actions workflow for Continuous Training (CT)\nname: Weekly Model Retraining\non:\n  schedule:\n    - cron: '0 0 * * 1' # Every Monday at midnight\njobs:\n  retrain:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout code\n        uses: actions/checkout@v4\n      - name: Fetch latest data\n        run: python scripts/fetch_data.py\n      - name: Train model\n        run: python scripts/train.py --output-path ./model\n      - name: Evaluate and register model\n        run: python scripts/evaluate.py --model-path ./model\n```",
         "benefits": ["Faster Experimentation and Development", "Reproducibility and Governance", "Reliable and Scalable Model Deployment", "Automated Model Monitoring and Retraining"],
+        "best_practices": ["Version control data, not just code (e.g., with DVC)", "Track experiments with tools like MLflow", "Monitor for data and concept drift in production", "Implement a feature store for reusable features"],
+        "anti_patterns": ["Training on your laptop without tracking", "Deploying models as a one-time event without monitoring", "Ignoring data quality and validation", "Coupling model training and serving pipelines tightly"],
         "learning_resources": ["[MLOps Principles](https://ml-ops.org/)", "[Google Cloud MLOps Guide](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)", "[Designing Machine Learning Systems (Book)](https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/)"]
     },
     "llm": {
@@ -423,8 +428,10 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
             "Retrieval-Augmented Generation (RAG)": "A technique that enhances LLM responses by first retrieving relevant information from an external knowledge base and providing it as context."
         },
         "real_world_scenario": "A customer support chatbot uses an LLM with a RAG system. When a user asks about a specific product, the system retrieves the latest product manual from a vector database and feeds it to the LLM. The LLM then generates a helpful, accurate answer based on the up-to-date information.",
-        "code_example": "```python\n# Conceptual RAG chain with LangChain\nfrom langchain_community.vectorstores import FAISS\nfrom langchain_core.prompts import ChatPromptTemplate\nfrom langchain_core.runnables import RunnablePassthrough\n\n# Assume 'retriever', 'llm' are already configured\n\ntemplate = \"\"\"Answer the question based only on this context:\\n\\n{context}\\n\nQuestion: {question}\"\"\"\nprompt = ChatPromptTemplate.from_template(template)\n\nrag_chain = (\n    {\"context\": retriever, \"question\": RunnablePassthrough()}\n    | prompt\n    | llm\n)\n\nrag_chain.invoke(\"What is the project status?\")\n```",
+        "code_example": "```python\n# Conceptual RAG chain with LangChain\nfrom langchain_community.vectorstores import FAISS\nfrom langchain_core.prompts import ChatPromptTemplate\nfrom langchain_core.runnables import RunnablePassthrough\n\n# Assume 'retriever', 'llm' are already configured\n\ntemplate = \"\"\"Answer the question based only on this context:\\n\\n{context}\\n\\nQuestion: {question}\"\"\"\nprompt = ChatPromptTemplate.from_template(template)\n\nrag_chain = (\n    {\"context\": retriever, \"question\": RunnablePassthrough()}\n    | prompt\n    | llm\n)\n\nrag_chain.invoke(\"What is the project status?\")\n```",
         "benefits": ["Human-like Text Generation", "Few-Shot Learning Capabilities", "Versatility Across Many NLP Tasks", "Code and Content Creation"],
+        "best_practices": ["Use RAG to ground models in factual data", "Fine-tune on high-quality, domain-specific data", "Implement guardrails to prevent harmful outputs", "Be specific and provide context in prompts"],
+        "anti_patterns": ["Trusting LLM outputs without verification (hallucinations)", "Using LLMs for tasks requiring deterministic logic", "Ignoring privacy implications of sending data to third-party APIs", "Underestimating the cost of inference at scale"],
         "learning_resources": ["[Hugging Face Transformers](https://huggingface.co/docs/transformers/index)", "[LangChain Documentation](https://python.langchain.com/docs/get_started/introduction)", "[Attention Is All You Need (Paper)](https://arxiv.org/abs/1706.03762)"]
     },
     "sast": {
@@ -443,6 +450,8 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "During a CI pipeline, a SAST scanner like SonarQube analyzes a Java codebase. It detects a potential SQL injection vulnerability where user input is directly concatenated into a database query string. The pipeline fails, preventing the insecure code from being merged.",
         "code_example": "```python\n# Example of a SQL Injection vulnerability a SAST tool would find\nfrom flask import Flask, request\nimport sqlite3\n\napp = Flask(__name__)\n\n@app.route(\"/user\")\ndef get_user():\n    user_id = request.args.get('id')\n    db = sqlite3.connect('database.db')\n    cursor = db.cursor()\n    \n    # VULNERABILITY: Unsanitized input used directly in a query\n    cursor.execute(f\"SELECT * FROM users WHERE id = {user_id}\")\n    \n    user = cursor.fetchone()\n    return str(user)\n```",
         "benefits": ["Early Detection in the SDLC", "No Need for a Running Application", "Covers a Wide range of Vulnerabilities", "Educates Developers on Secure Coding"],
+        "best_practices": ["Integrate SAST into the CI/CD pipeline", "Triage and prioritize findings", "Use quality gates to fail builds on critical vulnerabilities", "Combine with DAST and dependency scanning"],
+        "anti_patterns": ["Running scans manually and infrequently", "Ignoring high numbers of false positives without tuning", "Treating SAST as a silver bullet for all security issues", "Failing to train developers on fixing the issues found"],
         "learning_resources": ["[OWASP SAST Guide](https://owasp.org/www-community/Source_Code_Analysis_Tools)", "[SonarQube Documentation](https://docs.sonarqube.org/latest/)", "[SANS Secure Coding](https://www.sans.org/cyber-security-courses/?focus-area=secure-coding)"]
     },
     "aws-lambda": {
@@ -461,7 +470,13 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "A user uploads their profile picture to an S3 bucket. This event triggers a Lambda function that automatically resizes the image into thumbnail, medium, and large versions and saves them back to another S3 bucket for use in the web application.",
         "code_example": "```yaml\n# Example: AWS SAM template for an API-triggered Lambda\nAWSTemplateFormatVersion: '2010-09-09'\nTransform: AWS::Serverless-2016-10-31\nResources:\n  MyApiFunction:\n    Type: AWS::Serverless::Function\n    Properties:\n      Handler: app.lambda_handler\n      Runtime: python3.11\n      CodeUri: src/\n      Events:\n        ApiEvent:\n          Type: Api\n          Properties:\n            Path: /hello\n            Method: get\n```",
         "benefits": ["No Server Management", "Continuous Scaling", "Pay-per-Execution Cost Model", "Integrated with AWS Ecosystem"],
-        "learning_resources": ["[AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/)", "[AWS Lambda Powertools](https://awslabs.github.io/aws-lambda-powertools-python/)", "[Serverless Framework Docs](https://www.serverless.com/framework/docs)"]
+        "best_practices": ["Keep functions small and single-purpose", "Manage dependencies with Layers", "Use provisioned concurrency to reduce cold starts", "Implement Dead Letter Queues (DLQs) for error handling"],
+        "anti_patterns": ["Long-running, monolithic functions", "Chaining Lambda functions synchronously", "Ignoring cold start impact on user-facing APIs", "Using overly permissive IAM roles"],
+        "learning_resources": [
+            "[AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/)",
+            "[Serverless Land](https://serverlessland.com/)",
+            "[AWS Lambda Powertools](https://awslabs.github.io/aws-lambda-powertools-python/)"
+        ]
     },
     "grafana": {
         "title": "Why Grafana?",
@@ -479,7 +494,9 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "An SRE team has a Grafana dashboard that visualizes key SLOs for their service, pulling metrics from Prometheus and logs from Loki. When an alert fires for high error rates, they can immediately see the correlated logs and traces within the same dashboard to quickly diagnose the root cause.",
         "code_example": "```\n# Example PromQL query used in a Grafana panel for a 99% availability SLO\n(\n  sum(rate(http_requests_total{status_code=~\"5..\"}[5m]))\n  /\n  sum(rate(http_requests_total[5m]))\n) > 0.01\n```",
         "benefits": ["Unified Observability Platform", "Flexible Data Source Support", "Powerful Visualization Options", "Advanced Alerting", "Strong Community and Enterprise Support"],
-        "learning_resources": ["[Grafana Documentation](https://grafana.com/docs/grafana/latest/)", "Grafana University", "[Querying Prometheus](https://prometheus.io/docs/prometheus/latest/querying/basics/)"]
+        "best_practices": ["Use dashboard variables for dynamic filtering", "Correlate metrics, logs, and traces", "Define actionable alerts with clear runbooks", "Use 'Infrastructure as Code' to manage dashboards"],
+        "anti_patterns": ["Overly complex, cluttered dashboards", "Alerting on non-actionable metrics", "Using screenshots instead of sharing live dashboards", "Not using version control for dashboard JSON"],
+        "learning_resources": ["[Grafana Documentation](https://grafana.com/docs/grafana/latest/)", "[Grafana University](https://grafana.com/tutorials/)", "[Querying Prometheus](https://prometheus.io/docs/prometheus/latest/querying/basics/)"]
     },
     "solidity": {
         "title": "Why Solidity?",
@@ -497,6 +514,8 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "A developer writes a Solidity smart contract for an NFT (Non-Fungible Token). The contract defines the rules for minting new tokens, transferring ownership, and querying token metadata, all of which are enforced by the decentralized Ethereum network.",
         "code_example": "```solidity\n// Example: Simple Storage Smart Contract\n// SPDX-License-Identifier: MIT\npragma solidity ^0.8.19;\n\ncontract SimpleStorage {\n    uint256 private storedData;\n\n    event DataStored(uint256 newValue);\n\n    function set(uint256 x) public {\n        storedData = x;\n        emit DataStored(x);\n    }\n\n    function get() public view returns (uint256) {\n        return storedData;\n    }\n}\n```",
         "benefits": ["Turing-complete for Complex Logic", "Statically Typed for Safety", "Large Developer Community and Tooling", "Inheritance and Library Support"],
+        "best_practices": ["Use the Checks-Effects-Interactions pattern to prevent reentrancy", "Use established libraries like OpenZeppelin", "Favor pull over push for payments", "Ensure comprehensive test coverage and get external audits"],
+        "anti_patterns": ["Using `tx.origin` for authorization", "Unprotected functions that modify state", "Integer overflow/underflow (on older versions)", "Relying on block timestamps for randomness"],
         "learning_resources": ["[Solidity Documentation](https://docs.soliditylang.org/)", "[CryptoZombies](https://cryptozombies.io/)", "[Solidity by Example](https://solidity-by-example.org/)"]
     },
     "database": {
@@ -515,7 +534,9 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "An engineer designs a relational database schema for a social media application. They add indexes to the `user_id` column in the `posts` table to speed up queries for a user's posts and set up read replicas to handle high read traffic without impacting write performance.",
         "code_example": "```sql\n-- Example: Creating an index to speed up user lookups\n\n-- Find all posts by a specific user (can be slow on large tables)\nSELECT * FROM posts WHERE user_id = 12345;\n\n-- Create an index on the user_id column\nCREATE INDEX idx_posts_user_id ON posts(user_id);\n\n-- The same query now runs much faster by using the index\nSELECT * FROM posts WHERE user_id = 12345;\n```",
         "benefits": ["Data Integrity and Consistency", "High Performance Querying", "Scalability and High Availability", "Data Security and Access Control"],
-        "learning_resources": ["[Designing Data-Intensive Applications (Book)](https://dataintensive.net/)", "PostgreSQL Documentation", "Database Internals (Book)"]
+        "best_practices": ["Normalize data to reduce redundancy (for relational DBs)", "Use connection pooling", "Regularly analyze query performance (e.g., with EXPLAIN)", "Implement a robust backup and recovery strategy"],
+        "anti_patterns": ["Indexing every column", "Using `SELECT *` in production code", "Storing large binary objects (BLOBs) directly in the database", "Ignoring N+1 query problems in ORMs"],
+        "learning_resources": ["[Designing Data-Intensive Applications (Book)](https://dataintensive.net/)", "[PostgreSQL Documentation](https://www.postgresql.org/docs/)", "[Database Internals (Book)](https://www.oreilly.com/library/view/database-internals/9781492040330/)"]
     },
     "quantum-computing": {
         "title": "Quantum Computing Fundamentals",
@@ -533,7 +554,9 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "A pharmaceutical company uses a quantum computer to simulate molecular interactions for drug discovery. By modeling the complex quantum behavior of molecules, they can identify promising drug candidates much faster than with classical simulations.",
         "code_example": "```python\n# Example: Creating an entangled Bell state with Qiskit\nfrom qiskit import QuantumCircuit\n\n# Create a quantum circuit with two qubits\nqc = QuantumCircuit(2)\n\n# Put the first qubit in superposition\nqc.h(0)\n\n# Entangle the two qubits with a CNOT gate\nqc.cx(0, 1)\n\n# The qubits are now in a Bell state\nprint(qc)\n```",
         "benefits": ["Solving Intractable Problems", "Exponential Speedup for Certain Algorithms", "Accurate Molecular and Material Simulation", "Breaking Current Cryptographic Standards (a threat and opportunity)"],
-        "learning_resources": ["[Qiskit Textbook](https://qiskit.org/textbook/)", "Quantum Country", "Nielsen and Chuang (Book)"]
+        "best_practices": ["Use simulators for development and testing", "Employ error mitigation techniques for noisy hardware", "Choose problems that have a known quantum advantage", "Understand the limitations of current NISQ-era hardware"],
+        "anti_patterns": ["Expecting quantum computers to speed up all classical problems", "Ignoring the effects of noise and decoherence", "Running algorithms with deep circuits on current hardware", "Underestimating the need for classical post-processing"],
+        "learning_resources": ["[Qiskit Textbook](https://qiskit.org/textbook/)", "[Quantum Country](https://quantum.country/)", "[Nielsen and Chuang (Book)](https://www.cambridge.org/us/academic/subjects/physics/quantum-physics-quantum-information-and-quantum-computation/quantum-computation-and-quantum-information-10th-anniversary-edition)"]
     },
     "istio": {
         "title": "Why Istio?",
@@ -541,7 +564,7 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "key_concepts": {
             "Service Mesh": "A dedicated infrastructure layer for handling service-to-service communication, providing reliability, security, and observability.",
             "Envoy Proxy": "A high-performance proxy that Istio deploys as a 'sidecar' to each application container. All traffic in and out of the container flows through Envoy.",
-            "Control Plane (Istiod)": "The central component that manages and aconfigures the Envoy proxies to enforce policies and route traffic.",
+            "Control Plane (Istiod)": "The central component that manages and configures the Envoy proxies to enforce policies and route traffic.",
             "Custom Resources (CRDs)": {
                 "description": "Istio uses Kubernetes CRDs like `VirtualService` and `DestinationRule` to configure traffic management.",
                 "code_example": "apiVersion: networking.istio.io/v1beta1\nkind: DestinationRule\nmetadata:\n  name: my-service\nspec:\n  host: my-service\n  subsets:\n  - name: v1\n    labels:\n      version: v1\n  - name: v2\n    labels:\n      version: v2",
@@ -551,6 +574,8 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "A company with a microservices architecture uses Istio to enforce mTLS encryption for all internal traffic automatically. They also use a `VirtualService` to perform a canary release, gradually shifting 10% of traffic to a new version of a service to test it in production with minimal risk.",
         "code_example": "```yaml\n# Example: Istio VirtualService for canary deployment\napiVersion: networking.istio.io/v1beta1\nkind: VirtualService\nmetadata:\n  name: my-service\nspec:\n  hosts:\n    - my-service.my-namespace.svc.cluster.local\n  http:\n  - route:\n    - destination:\n        host: my-service\n        subset: v1\n      weight: 90\n    - destination:\n        host: my-service\n        subset: v2 # The new version\n      weight: 10 # Send 10% of traffic to v2\n```",
         "benefits": ["Automatic mTLS and Security Policies", "Advanced Traffic Management (Canary, A/B)", "Rich Telemetry (Metrics, Logs, Traces)", "Platform-Agnostic and Transparent to Apps"],
+        "best_practices": ["Start with a minimal profile and enable features as needed", "Use gateways for ingress and egress traffic", "Enforce strict mTLS by default", "Use `DestinationRule` to configure load balancing and connection pooling"],
+        "anti_patterns": ["Applying Istio to all namespaces without consideration", "Complex, deeply nested VirtualServices", "Bypassing the Envoy sidecar for service-to-service communication", "Ignoring the performance overhead of the proxies"],
         "learning_resources": ["[Istio Documentation](https://istio.io/latest/docs/)", "[Istio: Up & Running (Book)](https://www.oreilly.com/library/view/istio-up-and/9781492043768/)", "[CNCF Service Mesh White Paper](https://www.cncf.io/reports/service-mesh-white-paper/)"]
     },
     "gpu": {
@@ -569,6 +594,8 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "A data scientist trains a deep learning neural network for image recognition. The training process involves millions of matrix multiplications, which are executed in parallel on a GPU using a framework like TensorFlow or PyTorch, reducing training time from weeks to hours.",
         "code_example": "```python\n# Example: GPU array operations with CuPy (a NumPy-like library)\nimport numpy as np\nimport cupy as cp\nimport time\n\n# Create large arrays on the CPU and GPU\nx_cpu = np.ones((1000, 1000))\nx_gpu = cp.ones((1000, 1000))\n\n# CPU computation\nstart = time.time()\n_ = np.sum(x_cpu)\nprint(f\"CPU time: {time.time() - start:.5f}s\")\n\n# GPU computation\nstart = time.time()\n_ = cp.sum(x_gpu)\ncp.cuda.Stream.null.synchronize() # Wait for GPU to finish\nprint(f\"GPU time: {time.time() - start:.5f}s\")\n```",
         "benefits": ["Massive Parallelism for High Throughput", "Significant Speedup for AI/ML and Scientific Workloads", "Energy Efficiency for Parallel Tasks", "Growing Ecosystem of Libraries and Tools"],
+        "best_practices": ["Minimize data transfer between CPU and GPU", "Use high-level libraries (PyTorch, TensorFlow, CuPy) when possible", "Batch operations to maximize GPU utilization", "Overlap computation with data transfer using CUDA streams"],
+        "anti_patterns": ["Transferring small amounts of data back and forth frequently", "Using GPU for highly sequential, non-parallelizable tasks", "Ignoring memory management on the GPU", "Writing custom kernels for problems that are already solved by libraries"],
         "learning_resources": ["[NVIDIA CUDA Toolkit Documentation](https://docs.nvidia.com/cuda/)", "[Deep Learning with PyTorch (Book)](https://pytorch.org/deep-learning-with-pytorch)", "[NVIDIA Developer Blog](https://developer.nvidia.com/blog/)"]
     },
     "cryptography": {
@@ -587,6 +614,8 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "A government agency needs to encrypt classified data that must remain secure for decades. They use a hybrid encryption scheme, combining a classical algorithm (like AES) with a PQC key exchange mechanism (like Kyber). This ensures the data is secure today and remains secure even when large quantum computers become available.",
         "code_example": "```python\n# Conceptual example using the 'pqcrypto' library for Kyber\nimport pqcrypto.kem.kyber512 as kyber\n\nmessage = b'This is a secret message.'\n\n# Generate public and private keys\npublic_key, private_key = kyber.keypair()\n\n# Encapsulate to get a ciphertext and a shared secret\nciphertext, shared_secret_sender = kyber.enc(public_key)\n\n# Decapsulate the ciphertext to get the same shared secret\nshared_secret_receiver = kyber.dec(ciphertext, private_key)\n\n# Now both parties can use the shared secret for symmetric encryption\nassert shared_secret_sender == shared_secret_receiver\n```",
         "benefits": ["Long-Term Security Against Quantum Threats", "Based on Different, Hard Mathematical Problems", "Standardization Efforts by NIST", "Enables Secure Communication in a Post-Quantum World"],
+        "best_practices": ["Use a hybrid approach during transition (classical + PQC)", "Follow NIST recommendations and use standardized algorithms", "Use high-level cryptographic libraries", "Consider the performance and key size implications of PQC algorithms"],
+        "anti_patterns": ["Implementing your own cryptographic algorithms", "Using non-standardized or unvetted PQC algorithms", "Ignoring the need for a hybrid approach in the near term", "Hardcoding cryptographic keys"],
         "learning_resources": ["[NIST Post-Quantum Cryptography Project](https://csrc.nist.gov/projects/post-quantum-cryptography)", "[Introduction to Post-Quantum Cryptography](https://www.nist.gov/itl/applied-cybersecurity-division/post-quantum-cryptography/pqc-basics)", "[Open Quantum Safe Project](https://openquantumsafe.org/)"]
     },
     "websockets": {
@@ -605,6 +634,8 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
         "real_world_scenario": "A live stock trading application uses WebSockets to push real-time price updates to a user's browser. As soon as a stock price changes on the server, the new price is instantly sent to all connected clients, ensuring the user always sees the latest data without having to refresh the page.",
         "code_example": "```javascript\n// Example: Client-side WebSocket connection\nconst socket = new WebSocket('wss://api.example.com/stream');\n\n// Connection opened\nsocket.addEventListener('open', (event) => {\n  console.log('Connected to WebSocket server.');\n  socket.send('Hello Server!');\n});\n\n// Listen for messages from the server\nsocket.addEventListener('message', (event) => {\n  console.log('Message from server:', event.data);\n});\n\n// Listen for possible errors\nsocket.addEventListener('error', (event) => {\n  console.error('WebSocket error:', event);\n});\n```",
         "benefits": ["Real-Time Communication with Low Latency", "Reduced Network Overhead", "Efficient Bidirectional Data Flow", "Scalable for applications with many concurrent connections"],
+        "best_practices": ["Implement a reconnection strategy on the client", "Use a subprotocol for structured messages (e.g., JSON)", "Secure connections with WSS (WebSocket Secure)", "Implement heartbeats (pings/pongs) to detect dead connections"],
+        "anti_patterns": ["Using WebSockets for simple request-response tasks", "Not handling connection drops and reconnections gracefully", "Sending large, monolithic messages instead of smaller chunks", "Failing to secure the WebSocket endpoint"],
         "learning_resources": ["[MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)", "[RFC 6455](https://datatracker.ietf.org/doc/html/rfc6455)", "[Socket.IO](https://socket.io/)"]
     },
     "crdt": {
@@ -621,249 +652,248 @@ export const TECHNOLOGY_DEEP_DIVES: Record<string, TechnologyDeepDive> = {
             "Operation-based (CmRDTs)": "Replicas send individual update operations to other replicas. Requires a more reliable delivery mechanism."
         },
         "real_world_scenario": "A collaborative document editor like Google Docs uses CRDT-like data structures. When two users type in the same paragraph simultaneously, their changes are applied locally and then sent to other replicas. The CRDT ensures that even if the updates arrive in different orders, the final state of the paragraph will be identical for both users.",
-        "code_example": "```javascript\n// Example: A simple G-Counter (Grow-Only Counter) CRDT\nclass GCounter {\n  constructor(nodeId) {\n    this.nodeId = nodeId;\n    this.counts = {};\n  }\n\n  increment() {\n    this.counts[this.nodeId] = (this.counts[this.nodeId] || 0) + 1;\n  }\n\n  value() {\n    return Object.values(this.counts).reduce((sum, val) => sum + val, 0);\n  }\n\n  merge(other) {\n    for (const [node, count] of Object.entries(other.counts)) {\n      this.counts[node] = Math.max(this.counts[node] || 0, count);\n    }\n  }\n}\n```",
-        "benefits": ["Enables Offline-First and Local-First Applications", "No Need for Centralized Coordination or Locking", "Highly Available and Fault-Tolerant", "Mathematically Proven to Converge"],
-        "learning_resources": ["[A comprehensive study... (Paper)](https://hal.inria.fr/inria-00555588/document)", "[CRDT.tech](https://crdt.tech/)", "[Martin Kleppmann's talks on CRDTs](https://www.youtube.com/watch?v=yCcWpzY8dIA)"]
+        "code_example": "```javascript\n// Example: A simple G-Counter (Grow-Only Counter) CRDT\nclass GCounter {\n    constructor(id) {\n        this.id = id;\n        this.payload = {};\n        this.payload[id] = 0;\n    }\n\n    increment() {\n        this.payload[this.id]++;\n    }\n\n    value() {\n        return Object.values(this.payload).reduce((sum, val) => sum + val, 0);\n    }\n\n    merge(other) {\n        const newPayload = { ...this.payload };\n        for (const id in other.payload) {\n            newPayload[id] = Math.max(newPayload[id] || 0, other.payload[id]);\n        }\n        this.payload = newPayload;\n    }\n}\n```",
+        "benefits": ["Enables offline-first collaboration", "No central server required for conflict resolution", "High availability and fault tolerance", "Guaranteed eventual consistency"],
+        "best_practices": ["Use established CRDT libraries (e.g., Y.js, Automerge)", "Choose the right CRDT for the data type (e.g., G-Counter, PN-Counter, LWW-Register)", "Design for idempotency in operations", "Understand the memory footprint of your chosen CRDT"],
+        "anti_patterns": ["Using CRDTs for data requiring strong, immediate consistency", "Implementing complex CRDTs from scratch without deep understanding", "Ignoring the need for garbage collection (tombstones) in sets and maps", "Assuming network delivery guarantees for operation-based CRDTs"],
+        "learning_resources": ["[A comprehensive study of CRDTs (Paper)](https://pages.lip6.fr/Marc.Shapiro/papers/RR-7687.pdf)", "[CRDT.tech](https://crdt.tech/)", "[Awesome CRDT](https://github.com/alangibson/awesome-crdt)"]
     }
-};
-
-export const PROBLEM_CONTEXTS: Record<string, ProblemContext> = {
-    "infrastructure": {
-        "title": "Automating Cloud Infrastructure",
-        "context": "Modern cloud applications require reproducible, scalable, and secure infrastructure. Managing these environments manually is error-prone and inefficient, leading to configuration drift and operational bottlenecks.",
-        "business_impact": ["**Reduced Deployment Time:** Automating infrastructure provisioning accelerates the delivery of new features.", "**Improved Reliability:** Infrastructure as Code (IaC) ensures consistency across environments, reducing human error.", "**Enhanced Security:** Security policies can be codified and applied consistently across all resources."],
-        "solution_approach": ["**Declarative IaC:** Use tools like Terraform to define the desired state of the infrastructure.", "**Modular Design:** Break down infrastructure into reusable, version-controlled modules.", "**CI/CD Integration:** Integrate infrastructure changes into an automated pipeline for validation and deployment."],
-        "learning_objectives": ["Implement a secure multi-AZ VPC from scratch.", "Provision and configure a managed Kubernetes cluster (EKS).", "Manage database state (RDS) and application secrets securely.", "Integrate cost estimation and security scanning into the IaC workflow."]
-    },
-    "ci-cd": {
-        "title": "Building a GitOps-Driven Deployment Pipeline",
-        "context": "As development velocity increases, the process of deploying software to production must be fast, reliable, and auditable. Traditional, manual deployment processes are slow and introduce significant risk.",
-        "business_impact": ["**Increased Deployment Frequency:** Automation enables teams to release smaller changes more often, delivering value faster.", "**Lower Change Failure Rate:** Automated testing and progressive delivery strategies (e.g., canary) reduce the risk of production failures.", "**Improved Mean Time to Recovery (MTTR):** Git-based rollback provides a fast and reliable way to recover from a bad deployment."],
-        "solution_approach": ["**Git as the Source of Truth:** All application and infrastructure configurations are stored in Git.", "**Automated Reconciliation:** A tool like ArgoCD continuously monitors Git and syncs the cluster state to match.", "**Progressive Delivery:** Use techniques like blue-green or canary deployments to roll out changes with minimal risk."],
-        "learning_objectives": ["Construct a CI pipeline with GitHub Actions for building and testing containers.", "Configure ArgoCD to sync Kubernetes manifests from a Git repository.", "Implement a canary release strategy using Argo Rollouts or a similar tool.", "Integrate automated security scanning (SAST, DAST) into the pipeline."]
-    },
-    "default": {
-        "title": "Solving a Business Problem with Technology",
-        "context": "This project addresses a common business need by designing and implementing a robust, scalable, and maintainable software solution.",
-        "business_impact": ["Delivering a functional solution to a real-world problem.", "Improving efficiency through automation.", "Providing a foundation for future enhancements."],
-        "solution_approach": ["Employing a well-defined architecture to ensure separation of concerns.", "Using industry-standard tools and best practices for development and deployment.", "Focusing on a modular design for maintainability and testability."],
-        "learning_objectives": ["Understand the problem domain and translate requirements into technical specifications.", "Design and implement a solution using a modern tech stack.", "Write clean, testable, and well-documented code.", "Deploy and operate the application in a production-like environment."]
-    }
-};
-
-export const ARCHITECTURE_DEFINITIONS: Record<string, ArchitectureDefinition> = {
-    "infrastructure": {
-        "title": "Layered Cloud Infrastructure Architecture",
-        "layers": {
-            "Network": "Defines the foundational network topology (VPC, subnets, routing, security groups).",
-            "Data": "Provisions persistent storage and databases (RDS, S3, ElastiCache).",
-            "Compute": "Manages compute resources for running applications (EKS, EC2, ECS).",
-            "Application": "Deploys application-specific configurations and services."
-        },
-        "data_flow": [
-            "User traffic enters through a load balancer.",
-            "Requests are routed to the compute layer based on rules.",
-            "Compute services interact with the data layer for persistence.",
-            "All layers are defined and managed via Terraform code."
-        ],
-        "real_world_scenario": "Deploying a **scalable, multi-AZ web application** on AWS with a managed Kubernetes cluster and a relational database, all defined as code for **reproducibility and reliability**."
-    },
-     "ci-cd": {
-        "title": "GitOps-Driven CI/CD Architecture",
-        "layers": {
-            "Version Control (Git)": "Single source of truth for both application code and infrastructure configuration.",
-            "CI Pipeline (GitHub Actions)": "Automates building, testing, scanning, and packaging of the application.",
-            "Artifact Registry": "Stores versioned artifacts like container images.",
-            "CD Engine (ArgoCD)": "Continuously reconciles the live state in Kubernetes with the desired state in Git."
-        },
-        "data_flow": [
-            "Developer pushes code to Git, triggering the CI pipeline.",
-            "The CI pipeline builds a container image and pushes it to the registry.",
-            "The pipeline updates a Kubernetes manifest in a Git repository with the new image tag.",
-            "ArgoCD detects the change in the manifest repository and deploys the new version to the cluster."
-        ],
-        "real_world_scenario": "A developer merges a feature branch, which automatically triggers a pipeline that **tests the code, scans for vulnerabilities, builds a container image**, and deploys it to a staging environment for review, enabling **rapid, secure releases**."
-    },
-    "default": {
-        "title": "General System Architecture",
-        "layers": {
-            "Input": "Handles incoming requests, data, or events.",
-            "Processing": "Contains the core business logic and transformations.",
-            "Storage": "Manages data persistence and state.",
-            "Output": "Delivers results via APIs, events, or UIs."
-        },
-        "data_flow": ["Data flows from the input layer, through processing, interacts with storage, and results are sent to the output layer."],
-        "real_world_scenario": "A standard web service that accepts API requests, processes them, reads/writes to a database, and returns a response."
-    }
-};
-
-
-export const TECH_PURPOSES: Record<string, string> = {
-    "Apache Kafka": "Distributed event streaming platform",
-    "APScheduler": "Task scheduling library",
-    "AWS Batch": "Fully managed batch computing service",
-    "AWS CDK": "Type-safe infrastructure definitions with familiar languages",
-    "AWS IoT Core": "Managed IoT message broker",
-    "AWS RDS Global": "Managed relational database with cross-region replication",
-    "AWS Route53": "Scalable DNS and domain name registration",
-    "AWS S3 SDK": "AWS SDK for interacting with Amazon S3 storage",
-    "AWS SAM": "Serverless application development",
-    "ArgoCD": "GitOps continuous delivery for Kubernetes",
-    "Avro": "Data serialization format",
-    "Azure IoT Edge": "Edge computing runtime",
-    "Bash": "Shell automation and system integration",
-    "CUDA": "GPU parallel computing platform",
-    "Consul": "Service discovery and configuration",
-    "Cryptography Libraries": "Libraries providing cryptographic functions",
-    "Dask": "Parallel computing library",
-    "Databricks": "Unified analytics platform",
-    "Debezium": "Change Data Capture platform",
-    "Delta Lake": "ACID transactions for data lakes",
-    "Docker": "Containerization for consistent deployments",
-    "DynamoDB": "Serverless NoSQL database",
-    "ELK Stack": "Elasticsearch, Logstash, Kibana",
-    "Ethers.js": "Ethereum JavaScript library",
-    "FFmpeg": "Cross-platform solution to record, convert and stream audio and video",
-    "FastAPI": "High-performance Python API framework",
-    "GitHub Actions": "CI/CD workflow automation",
-    "GitHub Pages": "Static site hosting service integrated with GitHub",
-    "Go": "High-performance systems programming and CLIs",
-    "Grafana": "Visualization and dashboards",
-    "Hardhat": "Ethereum development environment",
-    "Helm": "Kubernetes package management",
-    "ImageHash": "Python library for perceptual hashing of images",
-    "Istio": "Service mesh for microservices",
-    "Jinja2": "Template engine for report generation",
-    "Kafka": "Distributed event streaming platform",
-    "Kopf": "Kubernetes operator framework",
-    "Kubernetes": "Container orchestration",
-    "Kubernetes API": "Programmatic cluster access",
-    "Kustomize": "Kubernetes configuration customization",
-    "Kyber": "Post-quantum key encapsulation mechanism",
-    "Lambda": "Event-driven serverless compute",
-    "LangChain": "LLM application framework",
-    "Loki": "Log aggregation and querying",
-    "MLflow": "ML experiment tracking and model registry",
-    "MQTT": "Lightweight IoT messaging protocol",
-    "Next.js": "React framework for production with server-side rendering and static site generation",
-    "Node.js": "JavaScript runtime for backend services",
-    "Nvidia Drivers": "Software for enabling GPU hardware acceleration",
-    "ONNX Runtime": "Cross-platform ML inference",
-    "OWASP ZAP": "Web application security testing",
-    "Optuna": "Hyperparameter optimization",
-    "PostgreSQL": "Relational database",
-    "Prometheus": "Metrics collection and alerting",
-    "Prometheus API": "API for querying Prometheus metrics",
-    "Pulumi": "Multi-language IaC with state management",
-    "PyYAML": "YAML parser and emitter for Python",
-    "Python": "Automation scripts, data processing, ML pipelines",
-    "Qiskit": "Quantum computing SDK",
-    "React": "Component-based JavaScript library for building user interfaces",
-    "Redis": "In-memory data store and caching",
-    "SQL": "Standard language for managing relational databases",
-    "SQLite": "Self-contained, serverless, zero-configuration SQL database engine",
-    "Scikit-learn": "Machine learning algorithms",
-    "Solidity": "Smart contract development",
-    "SonarQube": "Code quality analysis",
-    "Step Functions": "Workflow orchestration",
-    "Tailwind CSS": "A utility-first CSS framework for rapid UI development",
-    "Terraform": "Infrastructure as Code - declarative resource management",
-    "Thanos": "Long-term Prometheus storage",
-    "TimescaleDB": "Time-series database for telemetry",
-    "Trivy": "Container vulnerability scanner",
-    "TypeScript": "Type-safe JavaScript development",
-    "Typer": "Python library for building great Command Line Interfaces (CLIs)",
-    "Vault": "Secrets management and identity-based access",
-    "Vector DB": "Embedding storage and retrieval",
-    "VirusTotal API": "Threat intelligence and malware analysis",
-    "VitePress": "Static site generator",
-    "Vue.js": "Frontend JavaScript framework",
-    "WebSockets": "Real-time bidirectional communication",
-    "WeasyPrint": "HTML to PDF conversion",
-    "gRPC": "High-performance, language-agnostic RPC framework"
 };
 
 export const TECHNOLOGY_METADATA: Record<string, TechnologyMetadata> = {
-    "APScheduler": { "tags": ["automation", "reporting"], "category": "Backend" },
-    "AWS Batch": { "tags": ["quantum-computing", "aws"], "category": "Cloud & Infrastructure" },
-    "AWS CDK": { "tags": ["aws", "infrastructure"], "category": "Cloud & Infrastructure" },
-    "AWS IoT Core": { "tags": ["iot", "aws"], "category": "Cloud & Infrastructure" },
-    "AWS RDS Global": { "tags": ["aws", "dr", "database", "rds"], "category": "Cloud & Infrastructure" },
-    "AWS Route53": { "tags": ["aws", "dr"], "category": "Cloud & Infrastructure" },
-    "AWS S3 SDK": { "tags": ["aws", "storage", "data-engineering"], "category": "Cloud & Infrastructure" },
-    "AWS SAM": { "tags": ["serverless", "aws-lambda"], "category": "Cloud & Infrastructure" },
-    "ArgoCD": { "tags": ["argocd", "ci-cd", "kubernetes"], "category": "DevOps & CI/CD" },
-    "Avro": { "tags": ["streaming", "kafka"], "category": "Data & AI" },
-    "Azure IoT Edge": { "tags": ["edge-ai", "iot"], "category": "Cloud & Infrastructure" },
-    "Bash": { "tags": ["infrastructure"], "category": "HPC & Systems" },
-    "CUDA": { "tags": ["gpu", "cuda", "hpc"], "category": "HPC & Systems" },
-    "Consul": { "tags": ["service-mesh", "multi-cloud"], "category": "DevOps & CI/CD" },
-    "Cryptography Libraries": { "tags": ["cryptography", "post-quantum"], "category": "Security" },
-    "Dask": { "tags": ["gpu", "hpc", "python"], "category": "HPC & Systems" },
-    "Databricks": { "tags": ["data-lake", "spark", "glue"], "category": "Data & AI" },
-    "Debezium": { "tags": ["database", "migration", "kafka"], "category": "Data & AI" },
-    "Delta Lake": { "tags": ["data-lake", "spark"], "category": "Data & AI" },
-    "Docker": { "tags": ["docker", "ci-cd", "kubernetes", "streaming", "deployment"], "category": "DevOps & CI/CD" },
-    "DynamoDB": { "tags": ["serverless", "database"], "category": "Backend" },
-    "ELK Stack": { "tags": ["cybersecurity", "siem", "soc"], "category": "Security" },
-    "Ethers.js": { "tags": ["blockchain", "web3"], "category": "Blockchain" },
-    "FFmpeg": { "tags": ["video-processing", "data-engineering"], "category": "Data & AI" },
-    "FastAPI": { "tags": ["python", "ai", "chatbot", "mlops"], "category": "Backend" },
-    "GitHub Actions": { "tags": ["github-actions", "ci-cd", "devops"], "category": "DevOps & CI/CD" },
-    "GitHub Pages": { "tags": ["web", "documentation"], "category": "DevOps & CI/CD" },
-    "Go": { "tags": ["devops", "security", "deployment"], "category": "Backend" },
-    "Grafana": { "tags": ["monitoring", "observability", "grafana"], "category": "DevOps & CI/CD" },
-    "Hardhat": { "tags": ["blockchain", "solidity"], "category": "Blockchain" },
-    "Helm": { "tags": ["kubernetes", "ci-cd"], "category": "DevOps & CI/CD" },
-    "ImageHash": { "tags": ["python", "video-processing"], "category": "Data & AI" },
-    "Istio": { "tags": ["service-mesh", "istio", "kubernetes", "multi-cloud"], "category": "DevOps & CI/CD" },
-    "Jinja2": { "tags": ["reporting", "automation", "ansible"], "category": "Backend" },
-    "Kafka": { "tags": ["kafka", "streaming", "database", "migration"], "category": "Data & AI" },
-    "Apache Kafka": { "tags": ["kafka", "streaming"], "category": "Data & AI" },
-    "Kopf": { "tags": ["kubernetes", "operators", "python"], "category": "DevOps & CI/CD" },
-    "Kubernetes": { "tags": ["kubernetes", "ci-cd", "mlops", "service-mesh", "operators"], "category": "DevOps & CI/CD" },
-    "Kubernetes API": { "tags": ["kubernetes", "operators", "automation"], "category": "DevOps & CI/CD" },
-    "Kustomize": { "tags": ["kubernetes", "ci-cd"], "category": "DevOps & CI/CD" },
-    "Kyber": { "tags": ["cryptography", "post-quantum"], "category": "Security" },
-    "Lambda": { "tags": ["serverless", "aws-lambda"], "category": "Cloud & Infrastructure" },
-    "LangChain": { "tags": ["ai", "chatbot", "llm", "rag"], "category": "Data & AI" },
-    "Loki": { "tags": ["monitoring", "observability"], "category": "DevOps & CI/CD" },
-    "MLflow": { "tags": ["mlops", "machine-learning"], "category": "Data & AI" },
-    "MQTT": { "tags": ["iot", "mqtt"], "category": "Data & AI" },
-    "Next.js": { "tags": ["web", "frontend", "react"], "category": "Frontend & Web" },
-    "Node.js": { "tags": ["blockchain", "oracle", "web"], "category": "Backend" },
-    "Nvidia Drivers": { "tags": ["gpu", "hpc"], "category": "HPC & Systems" },
-    "ONNX Runtime": { "tags": ["edge-ai", "inference", "onnx"], "category": "Data & AI" },
-    "OWASP ZAP": { "tags": ["security", "devops", "dast"], "category": "Security" },
-    "Optuna": { "tags": ["mlops", "machine-learning"], "category": "Data & AI" },
-    "PostgreSQL": { "tags": ["database", "migration"], "category": "Backend" },
-    "Prometheus": { "tags": ["monitoring", "observability", "prometheus"], "category": "DevOps & CI/CD" },
-    "Prometheus API": { "tags": ["devops", "automation"], "category": "DevOps & CI/CD" },
-    "Pulumi": { "tags": ["aws", "infrastructure"], "category": "Cloud & Infrastructure" },
-    "PyYAML": { "tags": ["python", "automation"], "category": "Backend" },
-    "Python": { "tags": ["python", "automation", "mlops", "data-engineering", "streaming", "ai", "security", "quantum-computing", "cybersecurity", "gpu", "reporting", "devops", "operators"], "category": "Data & AI" },
-    "Qiskit": { "tags": ["quantum-computing", "qiskit"], "category": "Quantum Computing" },
-    "React": { "tags": ["web", "frontend", "photos"], "category": "Frontend & Web" },
-    "Redis": { "tags": ["real-time", "collaboration"], "category": "Backend" },
-    "SQL": { "tags": ["data-lake", "database"], "category": "Backend" },
-    "SQLite": { "tags": ["database", "self-hosted"], "category": "Backend" },
-    "Scikit-learn": { "tags": ["machine-learning", "mlops", "iot"], "category": "Data & AI" },
-    "Solidity": { "tags": ["blockchain", "solidity", "smart-contracts"], "category": "Blockchain" },
-    "SonarQube": { "tags": ["security", "devops", "sast"], "category": "Security" },
-    "Step Functions": { "tags": ["serverless", "step-functions"], "category": "Cloud & Infrastructure" },
-    "Tailwind CSS": { "tags": ["web", "frontend"], "category": "Frontend & Web" },
-    "Terraform": { "tags": ["terraform", "infrastructure", "aws", "dr"], "category": "Cloud & Infrastructure" },
-    "Thanos": { "tags": ["monitoring", "prometheus"], "category": "DevOps & CI/CD" },
-    "TimescaleDB": { "tags": ["database", "iot", "timescaledb"], "category": "Backend" },
-    "Trivy": { "tags": ["security", "devops", "sast"], "category": "Security" },
-    "TypeScript": { "tags": ["blockchain", "web3", "react"], "category": "Frontend & Web" },
-    "Typer": { "tags": ["python", "automation"], "category": "Backend" },
-    "Vault": { "tags": ["security", "devops"], "category": "Security" },
-    "Vector DB": { "tags": ["ai", "chatbot", "rag"], "category": "Data & AI" },
-    "VirusTotal API": { "tags": ["cybersecurity", "soc"], "category": "Security" },
-    "VitePress": { "tags": ["web", "documentation", "vitepress"], "category": "Frontend & Web" },
-    "Vue.js": { "tags": ["web", "vue"], "category": "Frontend & Web" },
-    "WebSockets": { "tags": ["websockets", "real-time", "collaboration"], "category": "Frontend & Web" },
-    "WeasyPrint": { "tags": ["reporting", "automation"], "category": "Backend" },
-    "gRPC": { "tags": ["backend", "devops"], "category": "Backend" }
+    "Terraform": { tags: ["iac", "automation", "hcl", "hashicorp"], category: 'DevOps & CI/CD' },
+    "AWS CDK": { tags: ["iac", "aws", "cloudformation", "typescript"], category: 'Cloud & Infrastructure' },
+    "Pulumi": { tags: ["iac", "automation", "multi-cloud"], category: 'DevOps & CI/CD' },
+    "Python": { tags: ["language", "scripting", "backend"], category: 'Backend' },
+    "Bash": { tags: ["scripting", "shell", "linux"], category: 'DevOps & CI/CD' },
+    "Debezium": { tags: ["cdc", "kafka", "data-streaming"], category: 'Data & AI' },
+    "Kafka": { tags: ["streaming", "messaging", "pubsub"], category: 'Data & AI' },
+    "PostgreSQL": { tags: ["database", "sql", "relational"], category: 'Backend' },
+    "Docker": { tags: ["containers", "virtualization", "devops"], category: 'DevOps & CI/CD' },
+    "GitHub Actions": { tags: ["ci-cd", "automation", "devops"], category: 'DevOps & CI/CD' },
+    "ArgoCD": { tags: ["gitops", "kubernetes", "ci-cd"], category: 'DevOps & CI/CD' },
+    "Helm": { tags: ["kubernetes", "packaging", "deployment"], category: 'DevOps & CI/CD' },
+    "Kustomize": { tags: ["kubernetes", "configuration", "deployment"], category: 'DevOps & CI/CD' },
+    "Trivy": { tags: ["security", "scanning", "containers"], category: 'Security' },
+    "SonarQube": { tags: ["sast", "code-quality", "security"], category: 'Security' },
+    "OWASP ZAP": { tags: ["dast", "security", "web-scanning"], category: 'Security' },
+    "Apache Kafka": { tags: ["streaming", "messaging", "pubsub"], category: 'Data & AI' },
+    "Apache Flink": { tags: ["stream-processing", "analytics", "stateful"], category: 'Data & AI' },
+    "Avro": { tags: ["schema", "serialization", "kafka"], category: 'Data & AI' },
+    "MLflow": { tags: ["mlops", "tracking", "deployment"], category: 'Data & AI' },
+    "Optuna": { tags: ["hyperparameter-tuning", "ml", "optimization"], category: 'Data & AI' },
+    "FastAPI": { tags: ["api", "python", "backend", "web"], category: 'Backend' },
+    "Scikit-learn": { tags: ["ml", "python", "data-science"], category: 'Data & AI' },
+    "Kubernetes": { tags: ["orchestration", "containers", "devops"], category: 'DevOps & CI/CD' },
+    "AWS SAM": { tags: ["serverless", "aws", "iac"], category: 'Cloud & Infrastructure' },
+    "Lambda": { tags: ["serverless", "faas", "aws"], category: 'Cloud & Infrastructure' },
+    "Step Functions": { tags: ["serverless", "orchestration", "aws"], category: 'Cloud & Infrastructure' },
+    "DynamoDB": { tags: ["nosql", "database", "aws"], category: 'Backend' },
+    "LangChain": { tags: ["llm", "ai", "orchestration"], category: 'Data & AI' },
+    "Vector DB": { tags: ["ai", "database", "embedding", "search"], category: 'Data & AI' },
+    "AWS Route53": { tags: ["dns", "aws", "networking"], category: 'Cloud & Infrastructure' },
+    "AWS RDS Global": { tags: ["database", "aws", "disaster-recovery"], category: 'Backend' },
+    "Solidity": { tags: ["blockchain", "smart-contract", "ethereum"], category: 'Blockchain' },
+    "Hardhat": { tags: ["blockchain", "ethereum", "testing"], category: 'Blockchain' },
+    "TypeScript": { tags: ["language", "javascript", "frontend"], category: 'Frontend & Web' },
+    "Ethers.js": { tags: ["blockchain", "ethereum", "web3"], category: 'Blockchain' },
+    "AWS IoT Core": { tags: ["iot", "aws", "mqtt"], category: 'Cloud & Infrastructure' },
+    "TimescaleDB": { tags: ["database", "time-series", "sql"], category: 'Backend' },
+    "MQTT": { tags: ["iot", "messaging", "pubsub"], category: 'Cloud & Infrastructure' },
+    "Qiskit": { tags: ["quantum", "python", "research"], category: 'Quantum Computing' },
+    "AWS Batch": { tags: ["batch-processing", "aws", "hpc"], category: 'Cloud & Infrastructure' },
+    "ELK Stack": { tags: ["logging", "monitoring", "observability"], category: 'DevOps & CI/CD' },
+    "VirusTotal API": { tags: ["security", "threat-intelligence", "api"], category: 'Security' },
+    "ONNX Runtime": { tags: ["ml", "inference", "edge-ai"], category: 'Data & AI' },
+    "Azure IoT Edge": { tags: ["iot", "edge-ai", "azure"], category: 'Cloud & Infrastructure' },
+    "WebSockets": { tags: ["real-time", "web", "networking"], category: 'Frontend & Web' },
+    "Redis": { tags: ["cache", "database", "in-memory"], category: 'Backend' },
+    "Databricks": { tags: ["spark", "data-lake", "analytics"], category: 'Data & AI' },
+    "Delta Lake": { tags: ["data-lake", "spark", "storage-format"], category: 'Data & AI' },
+    "SQL": { tags: ["database", "language", "query"], category: 'Backend' },
+    "Istio": { tags: ["service-mesh", "kubernetes", "networking"], category: 'DevOps & CI/CD' },
+    "Consul": { tags: ["service-discovery", "networking", "hashicorp"], category: 'DevOps & CI/CD' },
+    "CUDA": { tags: ["gpu", "hpc", "parallel-computing"], category: 'HPC & Systems' },
+    "Dask": { tags: ["python", "parallel-computing", "hpc"], category: 'HPC & Systems' },
+    "Nvidia Drivers": { tags: ["gpu", "hardware", "hpc"], category: 'HPC & Systems' },
+    "Kopf": { tags: ["kubernetes", "operator", "python"], category: 'DevOps & CI/CD' },
+    "Kubernetes API": { tags: ["kubernetes", "api", "automation"], category: 'DevOps & CI/CD' },
+    "Node.js": { tags: ["backend", "javascript", "runtime"], category: 'Backend' },
+    "Chainlink": { tags: ["blockchain", "oracle", "web3"], category: 'Blockchain' },
+    "Kyber": { tags: ["cryptography", "post-quantum", "security"], category: 'Security' },
+    "Cryptography Libraries": { tags: ["security", "encryption", "libraries"], category: 'Security' },
+    "Prometheus API": { tags: ["monitoring", "api", "observability"], category: 'DevOps & CI/CD' },
+    "Prometheus": { tags: ["monitoring", "metrics", "observability"], category: 'DevOps & CI/CD' },
+    "Grafana": { tags: ["visualization", "dashboards", "monitoring"], category: 'DevOps & CI/CD' },
+    "Loki": { tags: ["logging", "monitoring", "grafana"], category: 'DevOps & CI/CD' },
+    "Thanos": { tags: ["prometheus", "monitoring", "long-term-storage"], category: 'DevOps & CI/CD' },
+    "Jinja2": { tags: ["templating", "python", "automation"], category: 'Backend' },
+    "WeasyPrint": { tags: ["pdf", "reporting", "python"], category: 'Backend' },
+    "APScheduler": { tags: ["scheduling", "python", "automation"], category: 'Backend' },
+    "VitePress": { tags: ["static-site", "documentation", "vue"], category: 'Frontend & Web' },
+    "Vue.js": { tags: ["frontend", "javascript", "framework"], category: 'Frontend & Web' },
+    "Go": { tags: ["language", "backend", "systems"], category: 'Backend' },
+    "Vault": { tags: ["secrets-management", "security", "hashicorp"], category: 'Security' },
+    "gRPC": { tags: ["api", "rpc", "networking"], category: 'Backend' },
+    "React": { tags: ["frontend", "javascript", "ui-library"], category: 'Frontend & Web' },
+    "Next.js": { tags: ["frontend", "react", "framework"], category: 'Frontend & Web' },
+    "Tailwind CSS": { tags: ["css", "frontend", "utility-first"], category: 'Frontend & Web' },
+    "SQLite": { tags: ["database", "sql", "embedded"], category: 'Backend' },
+    "FFmpeg": { tags: ["video", "audio", "multimedia"], category: 'HPC & Systems' },
+    "ImageHash": { tags: ["image-processing", "hashing", "python"], category: 'Data & AI' },
+    "AWS S3 SDK": { tags: ["aws", "storage", "sdk"], category: 'Cloud & Infrastructure' },
+    "PyYAML": { tags: ["python", "yaml", "serialization"], category: 'Backend' },
+    "Typer": { tags: ["cli", "python", "framework"], category: 'Backend' },
+};
+
+export const TECH_PURPOSES: Record<string, string> = {
+    "Terraform": "Manages infrastructure as code declaratively.",
+    "AWS CDK": "Defines cloud infrastructure using familiar programming languages.",
+    "Pulumi": "An open-source infrastructure as code tool for creating, deploying, and managing cloud infrastructure.",
+    "Python": "A versatile language for backend development, scripting, and data analysis.",
+    "Bash": "A command language for scripting and automating tasks in Unix-like environments.",
+    "Debezium": "A distributed platform for Change Data Capture (CDC).",
+    "Kafka": "A distributed event streaming platform for high-throughput data pipelines.",
+    "PostgreSQL": "A powerful, open-source object-relational database system.",
+    "Docker": "A platform for developing, shipping, and running applications in containers.",
+    "GitHub Actions": "Automates software workflows, including CI/CD, directly within GitHub.",
+    "ArgoCD": "A declarative, GitOps continuous delivery tool for Kubernetes.",
+    "Helm": "The package manager for Kubernetes, simplifying application deployment.",
+    "Kustomize": "A tool to customize Kubernetes resource configuration.",
+    "Trivy": "A simple and comprehensive vulnerability scanner for containers.",
+    "SonarQube": "A platform for continuous inspection of code quality and security.",
+    "OWASP ZAP": "A web application security scanner for finding vulnerabilities.",
+    "Apache Kafka": "A distributed event streaming platform (same as Kafka).",
+    "Apache Flink": "A framework for stateful computations over data streams.",
+    "Avro": "A data serialization system for efficient, schema-driven data exchange.",
+    "MLflow": "An open-source platform to manage the ML lifecycle.",
+    "Optuna": "An automatic hyperparameter optimization framework.",
+    "FastAPI": "A modern, fast web framework for building APIs with Python.",
+    "Scikit-learn": "A simple and efficient tool for data mining and data analysis in Python.",
+    "Kubernetes": "An open-source system for automating deployment, scaling, and management of containerized applications.",
+    "AWS SAM": "An open-source framework for building serverless applications on AWS.",
+    "Lambda": "An AWS serverless compute service that runs code in response to events.",
+    "Step Functions": "An AWS service to coordinate multiple services into serverless workflows.",
+    "DynamoDB": "A key-value and document database that delivers single-digit millisecond performance at any scale.",
+    "LangChain": "A framework for developing applications powered by language models.",
+    "Vector DB": "A database designed to store and query vector embeddings for similarity search.",
+    "AWS Route53": "A scalable and highly available Domain Name System (DNS) web service.",
+    "AWS RDS Global": "A feature for RDS that allows a single database to span multiple AWS Regions.",
+    "Solidity": "A contract-oriented, high-level language for implementing smart contracts.",
+    "Hardhat": "A development environment for Ethereum software.",
+    "TypeScript": "A typed superset of JavaScript that compiles to plain JavaScript.",
+    "Ethers.js": "A complete and compact library for interacting with the Ethereum Blockchain.",
+    "AWS IoT Core": "A managed cloud service that lets connected devices easily and securely interact with cloud applications.",
+    "TimescaleDB": "An open-source time-series SQL database.",
+    "MQTT": "A lightweight, publish-subscribe network protocol that transports messages between devices.",
+    "Qiskit": "An open-source SDK for working with quantum computers at the level of pulses, circuits, and application modules.",
+    "AWS Batch": "A service to run batch computing workloads on the AWS Cloud.",
+    "ELK Stack": "A combination of three open-source tools—Elasticsearch, Logstash, and Kibana—for log analysis.",
+    "VirusTotal API": "An API to access VirusTotal's dataset of malware and threat intelligence.",
+    "ONNX Runtime": "A cross-platform inferencing and training accelerator for ML models.",
+    "Azure IoT Edge": "A fully managed service that deploys cloud intelligence locally on IoT edge devices.",
+    "WebSockets": "A communication protocol providing full-duplex communication channels over a single TCP connection.",
+    "Redis": "An in-memory data structure store, used as a database, cache, and message broker.",
+    "Databricks": "A unified data analytics platform for massive-scale data engineering and collaborative data science.",
+    "Delta Lake": "An open-source storage layer that brings ACID transactions to Apache Spark and big data workloads.",
+    "SQL": "A standard language for storing, manipulating and retrieving data in databases.",
+    "Istio": "An open platform to connect, manage, and secure microservices.",
+    "Consul": "A service networking solution to connect and secure services across any runtime platform.",
+    "CUDA": "A parallel computing platform and programming model developed by Nvidia for general computing on GPUs.",
+    "Dask": "A flexible library for parallel computing in Python.",
+    "Nvidia Drivers": "Software that allows the operating system to communicate with Nvidia GPU hardware.",
+    "Kopf": "A Python framework to write Kubernetes operators in a few lines of code.",
+    "Kubernetes API": "The primary way to interact with a Kubernetes cluster to manage workloads and resources.",
+    "Node.js": "A JavaScript runtime built on Chrome's V8 JavaScript engine.",
+    "Chainlink": "A decentralized oracle network that enables smart contracts to securely access off-chain data feeds.",
+    "Kyber": "A key-encapsulation mechanism (KEM) chosen as a standard for post-quantum cryptography by NIST.",
+    "Cryptography Libraries": "Libraries that provide implementations of cryptographic algorithms.",
+    "Prometheus API": "The API for querying metrics from a Prometheus monitoring server.",
+    "Prometheus": "An open-source systems monitoring and alerting toolkit.",
+    "Grafana": "An open-source platform for monitoring and observability, allowing you to query, visualize, alert on, and understand your metrics.",
+    "Loki": "A horizontally-scalable, highly-available, multi-tenant log aggregation system inspired by Prometheus.",
+    "Thanos": "An open-source, highly available Prometheus setup with long-term storage capabilities.",
+    "Jinja2": "A fast, expressive, extensible templating engine for Python.",
+    "WeasyPrint": "A smart solution helping web developers to create PDF documents from HTML and CSS.",
+    "APScheduler": "A Python library that lets you schedule your Python code to be executed later, either just once or periodically.",
+    "VitePress": "A static site generator designed for building fast, content-centric websites.",
+    "Vue.js": "A progressive framework for building user interfaces.",
+    "Go": "An open-source programming language that makes it easy to build simple, reliable, and efficient software.",
+    "Vault": "A tool for securely accessing secrets.",
+    "gRPC": "A high-performance, open-source universal RPC framework.",
+    "React": "A JavaScript library for building user interfaces.",
+    "Next.js": "A React framework for building full-stack web applications.",
+    "Tailwind CSS": "A utility-first CSS framework for rapidly building custom user interfaces.",
+    "SQLite": "A C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.",
+    "FFmpeg": "A complete, cross-platform solution to record, convert and stream audio and video.",
+    "ImageHash": "A Python library for perceptual image hashing.",
+    "AWS S3 SDK": "The AWS SDK for interacting with the S3 object storage service.",
+    "PyYAML": "A YAML parser and emitter for Python.",
+    "Typer": "A library for building great Command Line Interfaces (CLIs).",
+};
+
+export const PROBLEM_CONTEXTS: Record<string, ProblemContext> = {
+    "default": {
+        title: "Default Problem Context",
+        context: "A default problem context for projects where a specific one is not defined. This project aims to solve a common business problem through the application of modern technology and software engineering principles.",
+        business_impact: ["Demonstrates a key technology pattern.", "Provides a reusable template for similar problems.", "Improves operational efficiency or user experience."],
+        solution_approach: ["Leverage established cloud services and open-source tools.", "Follow industry best practices for security, reliability, and maintainability.", "Provide clear documentation and examples."],
+        learning_objectives: ["Understand the core concepts of the technologies used.", "Learn how to apply architectural patterns to solve real-world problems.", "Gain experience with development and deployment workflows."]
+    },
+    "aws": {
+        title: "Managing Cloud Infrastructure at Scale",
+        context: "Provisioning and managing cloud infrastructure manually is error-prone, inconsistent, and does not scale. To build reliable systems, infrastructure must be treated as code—versioned, tested, and deployed through automated pipelines.",
+        business_impact: ["**Reduced Risk:** Eliminates configuration drift and reduces human error.", "**Increased Velocity:** Enables rapid provisioning of consistent environments.", "**Improved Governance:** Provides an auditable trail of all infrastructure changes."],
+        solution_approach: ["**Declarative IaC:** Use a tool like Terraform to define the desired state of the infrastructure.", "**Modularity:** Break down infrastructure into reusable, composable modules.", "**CI/CD Integration:** Automate the deployment of infrastructure changes through a GitOps workflow."],
+        learning_objectives: ["Mastering Infrastructure as Code (IaC) with Terraform.", "Designing and implementing a secure and scalable multi-AZ VPC.", "Automating infrastructure deployment with CI/CD pipelines."]
+    },
+    "kubernetes": {
+        title: "Deploying and Managing Containerized Applications",
+        context: "While containers solve the problem of packaging applications, managing them in production—handling scaling, networking, and resilience—is complex. A container orchestrator is needed to automate these operational tasks.",
+        business_impact: ["**High Availability:** Automatically restarts failed containers and reschedules them.", "**Scalability:** Scales applications horizontally based on demand.", "**Developer Productivity:** Abstracts away infrastructure, allowing teams to focus on application logic."],
+        solution_approach: ["**Declarative Management:** Use Kubernetes to define the desired state of applications via YAML manifests.", "**GitOps:** Use a tool like ArgoCD to sync the cluster state from a Git repository.", "**Service Mesh:** Implement a service mesh like Istio for advanced traffic management and security."],
+        learning_objectives: ["Understanding core Kubernetes concepts (Pods, Deployments, Services).", "Implementing automated CI/CD pipelines with GitOps.", "Managing application configuration and secrets securely."]
+    },
+    "database": {
+        title: "Ensuring Data Integrity and Availability",
+        context: "Databases are the core of most applications, but migrating them, ensuring they are highly available, and capturing changes in real-time are significant engineering challenges.",
+        business_impact: ["**Zero Downtime:** Perform critical database migrations without impacting users.", "**Data Resilience:** Protect against data loss with robust backup and disaster recovery strategies.", "**Real-time Insights:** Enable streaming analytics by capturing database changes as they happen."],
+        solution_approach: ["**Change Data Capture (CDC):** Use a tool like Debezium to stream database changes to Kafka.", "**Automated Failover:** Implement multi-region replication for disaster recovery.", "**Validation and Rollback:** Build automated data validation and rollback procedures into migration workflows."],
+        learning_objectives: ["Implementing zero-downtime database migrations using CDC.", "Configuring high-availability and disaster recovery for relational databases.", "Building real-time data pipelines with Kafka."]
+    },
+};
+
+export const ARCHITECTURE_DEFINITIONS: Record<string, ArchitectureDefinition> = {
+    "default": {
+        title: "Standard Three-Tier Architecture",
+        layers: {
+            "Presentation": "Handles user interaction and renders the UI. (e.g., React frontend)",
+            "Application/Logic": "Contains the core business logic. (e.g., Python FastAPI backend)",
+            "Data": "Responsible for data persistence and retrieval. (e.g., PostgreSQL database)"
+        },
+        data_flow: ["User request arrives at the Presentation layer.", "The request is forwarded to the Application layer for processing.", "The Application layer interacts with the Data layer to read or write data.", "A response is returned through the layers to the user."],
+        real_world_scenario: "A typical **e-commerce website** where users browse products (Presentation), the backend handles orders and payments (Application), and data is stored in a database (Data)."
+    },
+    "aws": {
+        title: "High-Availability AWS Web Architecture",
+        layers: {
+            "Edge": "Route 53 for DNS routing and CloudFront for global content caching.",
+            "Load Balancing": "Application Load Balancer (ALB) to distribute traffic across multiple Availability Zones.",
+            "Compute": "Auto Scaling Group of EC2 instances or an EKS cluster for containerized applications.",
+            "Data": "RDS PostgreSQL in a Multi-AZ configuration for database resilience."
+        },
+        data_flow: ["A user's DNS query is resolved by Route 53 to the nearest CloudFront edge location.", "CloudFront serves cached content or forwards the request to the ALB.", "The ALB routes the request to a healthy instance in the compute layer.", "The application instance processes the request, interacting with the RDS database."],
+        real_world_scenario: "Hosting a **mission-critical web application** that must remain available even if an entire AWS data center fails."
+    },
+    "kubernetes": {
+        title: "GitOps-Managed Microservices Architecture",
+        layers: {
+            "CI/CD": "GitHub Actions for building and testing, pushing images to a container registry.",
+            "Source of Truth": "A Git repository containing all Kubernetes manifests and Helm charts.",
+            "Continuous Delivery": "ArgoCD running in the cluster, continuously syncing the live state with the Git repository.",
+            "Application Runtime": "Multiple microservices running as Deployments within the Kubernetes cluster, communicating via Services."
+        },
+        data_flow: ["A developer pushes a code change to the application repository, triggering GitHub Actions.", "The CI pipeline builds a new container image and updates the version in the manifest Git repository.", "ArgoCD detects the change in the manifest repository.", "ArgoCD applies the updated manifests to the Kubernetes cluster, triggering a rolling deployment of the new version."],
+        real_world_scenario: "A development team managing a **complex microservices application** with a fully automated, auditable, and secure deployment pipeline."
+    },
 };

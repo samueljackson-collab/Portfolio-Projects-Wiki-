@@ -62,6 +62,8 @@ const Tooltip: React.FC<{ activeNode: { data: NodeData, position: { top: number,
     );
 };
 
+const getStorageKey = (slug: string) => `tech-stack-graph-state-${slug}`;
+
 const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, allProjects }) => {
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,35 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
     const simulationRef = useRef<d3.Simulation<NodeData, any> | null>(null);
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+
+    // Load state from localStorage when project changes
+    useEffect(() => {
+        try {
+            const savedStateJSON = localStorage.getItem(getStorageKey(project.slug));
+            if (savedStateJSON) {
+                const savedState = JSON.parse(savedStateJSON);
+                setIsExpanded(savedState.isExpanded || false);
+            } else {
+                setIsExpanded(false); // Reset to default if no state found
+            }
+        } catch (e) {
+            console.error("Failed to parse saved graph state:", e);
+            setIsExpanded(false);
+        }
+    }, [project.slug]);
+
+    // Save isExpanded state to localStorage when it changes
+    useEffect(() => {
+        const key = getStorageKey(project.slug);
+        try {
+            const savedState = JSON.parse(localStorage.getItem(key) || '{}');
+            const newState = { ...savedState, isExpanded };
+            localStorage.setItem(key, JSON.stringify(newState));
+        } catch (e) {
+            const newState = { isExpanded };
+            localStorage.setItem(key, JSON.stringify(newState));
+        }
+    }, [isExpanded, project.slug]);
 
     const categoriesInUse = useMemo(() => {
         const categorySet = new Set<string>();
@@ -101,6 +132,7 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             .range([12, 25]);
     }, [techFrequencies]);
 
+    // Effect for simulation setup and teardown
     useEffect(() => {
         if (!svgRef.current) return;
 
@@ -109,6 +141,7 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
 
         const width = container.clientWidth;
         const height = 400;
+        const key = getStorageKey(project.slug);
 
         const nodes: NodeData[] = [
             { id: project.name, group: 0, radius: 25, fx: null, fy: null },
@@ -133,15 +166,12 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
 
         const mainGroup = svg.append("g");
 
-        const linkDistance = isExpanded ? 180 : 120;
-        const chargeStrength = isExpanded ? -300 : -200;
-        
         const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink<NodeData, LinkData>(links).id(d => d.id).distance(linkDistance).strength(0.5))
-            .force("charge", d3.forceManyBody().strength(chargeStrength))
+            .force("link", d3.forceLink<NodeData, LinkData>(links).id(d => d.id).strength(0.5))
+            .force("charge", d3.forceManyBody())
             .force("collide", d3.forceCollide<NodeData>().radius(d => d.radius + 8))
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .alphaDecay(0.08);
+            .alphaDecay(0.05);
 
         simulationRef.current = simulation;
 
@@ -152,7 +182,7 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             .data(links)
             .join("line")
             .attr("stroke-width", 1)
-            .style("transition", "stroke-opacity 0.3s ease, stroke-width 0.3s ease");
+            .style("transition", "stroke-opacity 0.3s ease, stroke-width 0.3s ease, stroke 0.3s ease");
 
         const node = mainGroup.append("g")
             .selectAll<SVGGElement, NodeData>("g")
@@ -190,10 +220,32 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             .scaleExtent([0.3, 3])
             .on("zoom", (event) => {
                 mainGroup.attr("transform", event.transform);
+                try {
+                    const savedState = JSON.parse(localStorage.getItem(key) || '{}');
+                    const newState = { ...savedState, transform: { k: event.transform.k, x: event.transform.x, y: event.transform.y } };
+                    localStorage.setItem(key, JSON.stringify(newState));
+                } catch (e) {
+                    const newState = { isExpanded, transform: { k: event.transform.k, x: event.transform.x, y: event.transform.y } };
+                    localStorage.setItem(key, JSON.stringify(newState));
+                }
             });
         
         svg.call(zoom as any);
         zoomRef.current = zoom;
+
+        try {
+            const savedStateJSON = localStorage.getItem(key);
+            if (savedStateJSON) {
+                const savedState = JSON.parse(savedStateJSON);
+                if (savedState.transform) {
+                    const { k, x, y } = savedState.transform;
+                    const transform = d3.zoomIdentity.translate(x, y).scale(k);
+                    svg.call(zoom.transform, transform);
+                }
+            }
+        } catch(e) {
+            console.error("Failed to apply saved graph state:", e);
+        }
 
         node
             .on('mouseover', function(event, d) {
@@ -268,7 +320,24 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             currentContainer?.removeEventListener('keydown', handleKeyDown);
         };
 
-    }, [project, isExpanded, radiusScale, techFrequencies]);
+    }, [project, radiusScale, techFrequencies]);
+
+    // Effect to update simulation forces when isExpanded changes
+    useEffect(() => {
+        const sim = simulationRef.current;
+        if (!sim) return;
+
+        const linkDistance = isExpanded ? 180 : 120;
+        const chargeStrength = isExpanded ? -300 : -200;
+
+        // Update forces on the existing simulation
+        (sim.force("link") as d3.ForceLink<NodeData, LinkData>).distance(linkDistance);
+        (sim.force("charge") as d3.ForceManyBody<NodeData>).strength(chargeStrength);
+        
+        // Give the simulation a 'kick' to resettle with new forces
+        sim.alpha(0.5).restart();
+
+    }, [isExpanded]);
 
     useEffect(() => {
         const svg = d3.select(svgRef.current);
@@ -309,11 +378,24 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             const categoryMatch = !activeCategory || d.group === 0 || (meta && meta.category === activeCategory);
             return tagMatch && searchMatch && categoryMatch;
         };
-        nodeGroups.transition().duration(300).style("opacity", d => isNodeVisible(d) ? 1 : 0.15);
-        nodeGroups.select('circle').transition().duration(300).style("filter", d => isNodeVisible(d) && lowerQuery ? 'drop-shadow(0 0 5px #2dd4bf)' : 'none').attr("stroke-width", d => isNodeVisible(d) && lowerQuery ? 2.5 : 2);
+        
+        nodeGroups.transition().duration(300)
+            .style("opacity", d => isNodeVisible(d) ? 1 : 0.2);
+
+        nodeGroups.select('circle').transition().duration(300)
+            .style("filter", d => {
+                if (isNodeVisible(d)) {
+                    return lowerQuery ? 'drop-shadow(0 0 5px #2dd4bf)' : 'none';
+                }
+                return 'grayscale(90%)';
+            })
+            .attr("stroke-width", d => isNodeVisible(d) && lowerQuery ? 2.5 : 2);
+
         link.transition().duration(300)
-            .style("stroke-opacity", d => isNodeVisible(d.source as unknown as NodeData) && isNodeVisible(d.target as unknown as NodeData) ? 0.6 : 0.1)
-            .attr("stroke-width", d => isNodeVisible(d.source as unknown as NodeData) && lowerQuery ? 2 : 1);
+            .style("stroke-opacity", d => isNodeVisible(d.source as unknown as NodeData) && isNodeVisible(d.target as unknown as NodeData) ? 0.6 : 0.05)
+            .attr("stroke", d => isNodeVisible(d.source as unknown as NodeData) && isNodeVisible(d.target as unknown as NodeData) ? '#4A5568' : '#374151')
+            .attr("stroke-width", d => isNodeVisible(d.source as unknown as NodeData) && isNodeVisible(d.target as unknown as NodeData) && lowerQuery ? 2 : 1);
+            
     }, [activeTag, searchQuery, project, activeCategory]);
     
     const handleFitScreen = () => {
