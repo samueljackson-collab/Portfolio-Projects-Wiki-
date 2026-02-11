@@ -75,6 +75,7 @@ npm run preview
 ├── types.ts           # Shared TypeScript types
 ├── index.tsx          # React app entry point
 ├── index.html         # HTML shell + Tailwind/import map setup
+├── package.json       # Project dependencies and scripts
 ├── vite.config.ts     # Vite configuration
 └── README.md
 ```
