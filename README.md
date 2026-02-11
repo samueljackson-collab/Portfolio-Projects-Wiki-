@@ -1,37 +1,58 @@
-<div align="center">
-  <img width="1200" height="475" alt="Project Wiki Viewer Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+# Portfolio Projects Wiki
 
-  # Project Wiki Viewer
+An interactive, single-page **project knowledge base** for exploring a portfolio in a Wiki.js-inspired format. The app organizes projects by maturity, supports fuzzy search, and provides deep technical context (architecture, implementation notes, tradeoffs, and technology insights) for each project.
 
-  A wiki-style portfolio explorer built with **React + TypeScript + Vite**.
-</div>
+---
 
-## Overview
+## ✨ Features
 
-Project Wiki Viewer is a single-page app for presenting portfolio projects in a structured, documentation-like layout. It uses a sidebar-driven navigation experience and a rich project detail view so visitors can explore project context, architecture, metrics, and insights quickly.
+- **Project explorer sidebar** with grouped statuses (Production Ready → Basic).
+- **Fuzzy search** across project names, descriptions, and tags.
+- **Detailed project pages** with:
+  - feature highlights,
+  - progress/completion indicators,
+  - architecture and problem-context sections,
+  - related project suggestions.
+- **Interactive tech stack visualization** using D3 force-directed graphs.
+- **Technology deep-dive content** for domain knowledge and best practices.
+- **Responsive UI** with mobile sidebar toggle, keyboard/overlay close behavior, and desktop-friendly layout.
+- **State persistence** (e.g., graph zoom/selection and active tags) via local storage.
 
-## Features
+---
 
-- **Wiki-style navigation** with a project sidebar and active project highlighting.
-- **Responsive layout** with a mobile menu and desktop split view.
-- **Detailed project pages** including technical and business context.
-- **Interactive visual elements** (including D3-powered graphing components).
-- **Static data source** for predictable, version-controlled content.
+## 🛠 Tech Stack
 
-## Tech Stack
-
-- **Framework:** React 19
-- **Language:** TypeScript
+- **Frontend:** React 19 + TypeScript
 - **Build Tool:** Vite
 - **Visualization:** D3
-- **Styling:** Tailwind CSS (via CDN in `index.html`)
+- **Styling:** Tailwind CSS (CDN-based utility classes)
 
-## Getting Started
+---
+
+## 📁 Project Structure
+
+```text
+.
+├── App.tsx                 # App shell + routing by selected project state
+├── components/
+│   ├── Sidebar.tsx         # Search + grouped project navigation
+│   ├── ProjectDetail.tsx   # Main project content renderer
+│   ├── TechStackGraph.tsx  # D3 graph visualization
+│   └── ...
+├── constants.ts            # Primary data source for projects and knowledge sections
+├── types.ts                # Shared TypeScript interfaces
+├── index.tsx               # React entry point
+└── vite.config.ts          # Vite configuration
+```
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- npm (comes with Node.js)
+- **Node.js** 18+
+- **npm** (bundled with Node)
 
 ### Installation
 
@@ -39,65 +60,46 @@ Project Wiki Viewer is a single-page app for presenting portfolio projects in a 
 npm install
 ```
 
-### Run in Development
+### Run in development
 
 ```bash
 npm run dev
 ```
 
-The app will start on Vite's default local development port (typically `5173`).
+Then open the local URL shown by Vite (usually `http://localhost:5173`).
 
-### Production Build
+### Production build
 
 ```bash
 npm run build
 ```
 
-### Preview Production Build
+### Preview production build
 
 ```bash
 npm run preview
 ```
 
-## Available Scripts
+---
 
-- `npm run dev` — Start the local dev server.
-- `npm run build` — Build optimized production assets.
-- `npm run preview` — Serve the production build locally.
+## 🧠 Data Model
 
-## Project Structure
+Project content is driven by static TypeScript data and types:
 
-```text
-.
-├── components/        # Reusable UI and visualization components
-├── App.tsx            # Main app shell (layout + state wiring)
-├── constants.ts       # Project data source and static config
-├── types.ts           # Shared TypeScript types
-├── index.tsx          # React app entry point
-├── index.html         # HTML shell + Tailwind/import map setup
-├── package.json       # Project dependencies and scripts
-├── vite.config.ts     # Vite configuration
-└── README.md
-```
+- `constants.ts` contains project records and domain/reference content.
+- `types.ts` defines canonical entities (project metadata, architecture definitions, problem contexts, deep-dive structures).
 
-## Customization
+This makes it easy to scale content while keeping rendering components mostly generic.
 
-To add or update portfolio entries, edit `constants.ts` and keep fields aligned with the interfaces in `types.ts`.
+---
 
-## Deployment
+## 📌 Notes
 
-You can deploy the app to any static hosting provider that supports Vite output, for example:
+- This repo is currently structured as a client-side viewer with embedded data.
+- If desired, data can later be externalized to JSON/MD files or a headless CMS with minimal UI changes.
 
-- Vercel
-- Netlify
-- GitHub Pages
-- Cloudflare Pages
+---
 
-Typical flow:
+## 📜 License
 
-1. Run `npm run build`
-2. Deploy the generated `dist/` directory
-
-## License
-
-This repository currently does not include a license file. If this project is intended for public reuse, add a `LICENSE` file with your preferred license.
+No license file is currently included in this repository. Add a `LICENSE` if you plan to distribute this project publicly.
