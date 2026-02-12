@@ -14,7 +14,8 @@ github:
   lookback_days: 7
 
 # State tracking - keeps track of what's already been processed
-state_file: "wiki-generator/.state/processed.json"
+# Path is relative to the wiki-generator directory (the working directory at runtime)
+state_file: ".state/processed.json"
 
 # Draft AI Agent Configuration (Free/Cheap tier)
 # Supported: "gemini" (Google, free tier), "groq" (free tier), "ollama" (local)
@@ -41,8 +42,8 @@ review_agent:
 
 # Output configuration
 output:
-  # Where to write the generated/updated constants
-  constants_file: "constants.ts"
+  # Where to write the generated/updated constants (relative to repo root)
+  constants_file: "../constants.ts"
   # Where to store drafts before review
   drafts_dir: "wiki-generator/.drafts"
   # Where to store reviewed entries ready for merge

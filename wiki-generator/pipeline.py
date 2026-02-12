@@ -74,7 +74,7 @@ class WikiPipeline:
             lookback_days=self.config["github"].get("lookback_days", 7),
         )
         self.state = StateTracker(
-            str(self.project_root / self.config["state_file"])
+            str(self.base_dir / self.config["state_file"])
         )
         self.drafter = DraftGenerator(
             provider=self.config["draft_agent"]["provider"],
@@ -111,18 +111,18 @@ class WikiPipeline:
         projects_match = _extract_ts_array(content, "PROJECTS_DATA")
         if projects_match:
             try:
-                projects = json.loads(projects_match)
-            except json.JSONDecodeError:
-                logger.warning("Could not parse PROJECTS_DATA from constants.ts")
+                projects = json.loads(_normalize_ts_to_json(projects_match))
+            except json.JSONDecodeError as e:
+                logger.warning(f"Could not parse PROJECTS_DATA from constants.ts: {e}")
 
         # Extract tech deep dives keys (just the keys for comparison)
         tech_dives = {}
         tech_match = _extract_ts_object(content, "TECHNOLOGY_DEEP_DIVES")
         if tech_match:
             try:
-                tech_dives = json.loads(tech_match)
-            except json.JSONDecodeError:
-                logger.warning("Could not parse TECHNOLOGY_DEEP_DIVES")
+                tech_dives = json.loads(_normalize_ts_to_json(tech_match))
+            except json.JSONDecodeError as e:
+                logger.warning(f"Could not parse TECHNOLOGY_DEEP_DIVES: {e}")
 
         return projects, tech_dives
 
@@ -326,7 +326,7 @@ class WikiPipeline:
         elif change.change_type == "status_update":
             template = load_template(str(templates_dir / "status_update.yaml"))
             system, user = build_status_update_prompt(
-                template, change.repo_info, change.existing_entry,
+                template, change.existing_entry,
                 change.commit_messages,
                 self.config["github"].get("lookback_days", 7)
             )
@@ -367,6 +367,17 @@ class WikiPipeline:
         output_dir = self.project_root / "wiki-generator" / ".output"
         output_dir.mkdir(parents=True, exist_ok=True)
 
+        # Validate URLs in tech deep dive learning resources
+        url_warnings = []
+        if change.change_type == "new_tech":
+            value = entry.get("value", entry)
+            url_warnings = _validate_learning_resource_urls(
+                value.get("learning_resources", [])
+            )
+            if url_warnings:
+                for w in url_warnings:
+                    logger.warning(f"  URL validation: {w}")
+
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         filename = f"{timestamp}_{change.change_type}_{change.repo_name}.json"
 
@@ -377,6 +388,8 @@ class WikiPipeline:
             "entry": entry,
             "instructions": self._get_merge_instructions(change),
         }
+        if url_warnings:
+            output["url_validation_warnings"] = url_warnings
 
         filepath = output_dir / _sanitize_filename(filename)
         filepath.write_text(json.dumps(output, indent=2))
@@ -410,27 +423,205 @@ class WikiPipeline:
         return "Review and manually merge into constants.ts."
 
 
+def _normalize_ts_to_json(ts_str: str) -> str:
+    """Normalize TypeScript-specific syntax to valid JSON.
+
+    Handles: trailing commas, single quotes, unquoted keys, 'as const',
+    single-line comments, and template literals (basic).
+    """
+    import re
+    s = ts_str
+
+    # Remove 'as const' suffixes
+    s = re.sub(r'\bas\s+const\b', '', s)
+
+    # Remove single-line comments (// ...) but not inside strings
+    # Simple heuristic: remove lines that are only comments or trailing comments
+    s = re.sub(r'(?m)^\s*//.*$', '', s)
+    s = re.sub(r'(?<=[,\]\}\"\d])\s*//[^\n]*', '', s)
+
+    # Replace single-quoted strings with double-quoted strings
+    # This is a simple heuristic that handles most common cases
+    result = []
+    i = 0
+    length = len(s)
+    while i < length:
+        ch = s[i]
+        if ch == '"':
+            # Skip double-quoted string
+            result.append(ch)
+            i += 1
+            while i < length and s[i] != '"':
+                if s[i] == '\\':
+                    result.append(s[i])
+                    i += 1
+                    if i < length:
+                        result.append(s[i])
+                        i += 1
+                    continue
+                result.append(s[i])
+                i += 1
+            if i < length:
+                result.append(s[i])
+                i += 1
+        elif ch == "'":
+            # Convert single-quoted string to double-quoted
+            result.append('"')
+            i += 1
+            while i < length and s[i] != "'":
+                if s[i] == '\\':
+                    result.append(s[i])
+                    i += 1
+                    if i < length:
+                        result.append(s[i])
+                        i += 1
+                    continue
+                # Escape any unescaped double quotes inside
+                if s[i] == '"':
+                    result.append('\\')
+                result.append(s[i])
+                i += 1
+            if i < length:
+                result.append('"')
+                i += 1
+        elif ch == '`':
+            # Convert template literal to double-quoted (strip interpolation)
+            result.append('"')
+            i += 1
+            while i < length and s[i] != '`':
+                if s[i] == '\\':
+                    result.append(s[i])
+                    i += 1
+                    if i < length:
+                        result.append(s[i])
+                        i += 1
+                    continue
+                if s[i] == '"':
+                    result.append('\\')
+                result.append(s[i])
+                i += 1
+            if i < length:
+                result.append('"')
+                i += 1
+        else:
+            result.append(ch)
+            i += 1
+
+    s = ''.join(result)
+
+    # Quote unquoted keys: word characters before a colon (object keys)
+    s = re.sub(r'(?<=[\{,\n])\s*([a-zA-Z_]\w*)\s*:', r' "\1":', s)
+
+    # Remove trailing commas before } or ]
+    s = re.sub(r',\s*([}\]])', r'\1', s)
+
+    return s
+
+
+def _find_bracket_block(content: str, var_name: str, open_bracket: str, close_bracket: str) -> str:
+    """Extract a bracketed block from a TypeScript const declaration.
+
+    Locates 'export const {var_name}', finds the opening bracket, then
+    scans character-by-character tracking nesting depth while skipping
+    string literals and escape sequences until the matching closing bracket.
+    """
+    import re
+    # Find the declaration
+    pattern = rf'export\s+const\s+{re.escape(var_name)}\s*(?::\s*[^=]+)?\s*='
+    match = re.search(pattern, content)
+    if not match:
+        return ""
+
+    # Find the opening bracket after '='
+    start_search = match.end()
+    open_idx = content.find(open_bracket, start_search)
+    if open_idx == -1:
+        return ""
+
+    # Scan character-by-character tracking nesting and string literals
+    depth = 0
+    i = open_idx
+    in_string = None  # None, '"', "'"  or '`'
+    length = len(content)
+
+    while i < length:
+        ch = content[i]
+
+        # Handle escape sequences inside strings
+        if in_string and ch == '\\':
+            i += 2  # skip escaped character
+            continue
+
+        # Handle string boundaries
+        if ch in ('"', "'", '`'):
+            if in_string is None:
+                in_string = ch
+            elif in_string == ch:
+                in_string = None
+            i += 1
+            continue
+
+        # Only track brackets outside strings
+        if in_string is None:
+            if ch == open_bracket:
+                depth += 1
+            elif ch == close_bracket:
+                depth -= 1
+                if depth == 0:
+                    result = content[open_idx:i + 1]
+                    # Strip trailing semicolon and 'as const'
+                    return result
+        i += 1
+
+    return ""
+
+
 def _extract_ts_array(content: str, var_name: str) -> str:
     """Extract a JSON array from a TypeScript const declaration."""
-    import re
-    # Match: export const VAR_NAME: Type[] = [...]
-    pattern = rf'export\s+const\s+{var_name}\s*(?::\s*[^=]+)?\s*=\s*(\[[\s\S]*?\n\];)'
-    match = re.search(pattern, content)
-    if match:
-        arr_str = match.group(1).rstrip(';')
-        return arr_str
-    return ""
+    return _find_bracket_block(content, var_name, '[', ']')
 
 
 def _extract_ts_object(content: str, var_name: str) -> str:
     """Extract a JSON object from a TypeScript const declaration."""
+    return _find_bracket_block(content, var_name, '{', '}')
+
+
+def _validate_learning_resource_urls(resources: list) -> list[str]:
+    """Validate URLs in learning resources by sending HEAD requests.
+
+    Extracts URLs from markdown links like [text](url) and checks each.
+    Returns a list of warning messages for invalid URLs.
+    """
     import re
-    pattern = rf'export\s+const\s+{var_name}\s*(?::\s*[^=]+)?\s*=\s*(\{{[\s\S]*?\n\}};)'
-    match = re.search(pattern, content)
-    if match:
-        obj_str = match.group(1).rstrip(';')
-        return obj_str
-    return ""
+    import urllib.request
+    import urllib.error
+
+    warnings = []
+    url_pattern = re.compile(r'\[([^\]]*)\]\((https?://[^)]+)\)')
+
+    for resource in resources:
+        if not isinstance(resource, str):
+            continue
+        matches = url_pattern.findall(resource)
+        if not matches:
+            # Try treating the whole string as a URL
+            if resource.startswith("http"):
+                matches = [("", resource)]
+        for link_text, url in matches:
+            try:
+                req = urllib.request.Request(url, method="HEAD")
+                req.add_header("User-Agent", "wiki-generator-url-validator")
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    if resp.status >= 400:
+                        warnings.append(
+                            f"URL returned {resp.status}: {url}"
+                        )
+            except urllib.error.HTTPError as e:
+                warnings.append(f"URL returned HTTP {e.code}: {url}")
+            except Exception as e:
+                warnings.append(f"URL unreachable ({e}): {url}")
+
+    return warnings
 
 
 def _sanitize_filename(name: str) -> str:

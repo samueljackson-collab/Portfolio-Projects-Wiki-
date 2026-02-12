@@ -100,7 +100,7 @@ class DraftGenerator:
             raise ValueError("GEMINI_API_KEY environment variable not set")
 
         url = (f"https://generativelanguage.googleapis.com/v1beta/"
-               f"models/{model}:generateContent?key={api_key}")
+               f"models/{model}:generateContent")
 
         payload = {
             "system_instruction": {
@@ -119,19 +119,22 @@ class DraftGenerator:
         data = json.dumps(payload).encode()
         req = urllib.request.Request(
             url, data=data,
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": api_key,
+            },
             method="POST"
         )
 
         try:
             with urllib.request.urlopen(req, timeout=120) as resp:
                 result = json.loads(resp.read().decode())
-                return result["candidates"][0]["content"]["parts"][0]["text"]
+                return _extract_gemini_text(result)
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                raise RateLimitError("Gemini rate limit exceeded")
+                raise RateLimitError("Gemini rate limit exceeded") from e
             body = e.read().decode() if e.readable() else str(e)
-            raise RuntimeError(f"Gemini API error {e.code}: {body}")
+            raise RuntimeError(f"Gemini API error {e.code}") from e
 
     def _call_groq(self, model: str, system_prompt: str,
                    user_prompt: str) -> str:
@@ -178,6 +181,7 @@ class DraftGenerator:
                      user_prompt: str) -> str:
         """Call local Ollama instance."""
         import urllib.request
+        import urllib.error
 
         url = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
         url = f"{url}/api/generate"
@@ -198,9 +202,15 @@ class DraftGenerator:
             method="POST"
         )
 
-        with urllib.request.urlopen(req, timeout=300) as resp:
-            result = json.loads(resp.read().decode())
-            return result.get("response", "")
+        try:
+            with urllib.request.urlopen(req, timeout=300) as resp:
+                result = json.loads(resp.read().decode())
+                return result.get("response", "")
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                raise RateLimitError("Ollama rate limit exceeded") from e
+            body = e.read().decode() if e.readable() else str(e)
+            raise RuntimeError(f"Ollama API error {e.code}: {body}") from e
 
     def _parse_json_response(self, raw: str) -> dict:
         """Extract and parse JSON from AI response, handling markdown fences."""
@@ -214,6 +224,35 @@ class DraftGenerator:
             raw = re.sub(r'\n?```\s*$', '', raw)
 
         return json.loads(raw)
+
+
+def _extract_gemini_text(result: dict) -> str:
+    """Safely extract text from a Gemini API response.
+
+    Validates the nested structure before indexing to provide clear errors
+    when the response shape is unexpected.
+    """
+    candidates = result.get("candidates")
+    if not isinstance(candidates, list) or len(candidates) == 0:
+        raise RuntimeError(
+            "Gemini response missing 'candidates' or candidates list is empty"
+        )
+    content = candidates[0].get("content")
+    if not isinstance(content, dict):
+        raise RuntimeError(
+            "Gemini response: first candidate missing 'content' dict"
+        )
+    parts = content.get("parts")
+    if not isinstance(parts, list) or len(parts) == 0:
+        raise RuntimeError(
+            "Gemini response: 'content.parts' missing or empty"
+        )
+    text = parts[0].get("text")
+    if text is None:
+        raise RuntimeError(
+            "Gemini response: first part missing 'text' field"
+        )
+    return text
 
 
 class RateLimitError(Exception):

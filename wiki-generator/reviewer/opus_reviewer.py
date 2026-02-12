@@ -86,13 +86,17 @@ Return ONLY the JSON object, no markdown fences or explanation."""
             logger.warning("ANTHROPIC_API_KEY not set. Skipping Opus review.")
             return draft
 
+        sanitized_draft = _truncate_for_prompt(draft, max_keys=20, max_str_len=500)
+        sanitized_examples = _truncate_for_prompt(
+            example_entries[:2], max_keys=15, max_str_len=400
+        )
         user_prompt = self.REVIEW_USER_TEMPLATE.format(
-            draft_json=json.dumps(draft, indent=2)[:6000],
+            draft_json=json.dumps(sanitized_draft, indent=2),
             change_type=change_type,
             repo_name=repo_name,
             repo_description=repo_description,
             languages=languages,
-            example_entries=json.dumps(example_entries[:2], indent=2)[:4000],
+            example_entries=json.dumps(sanitized_examples, indent=2),
         )
 
         for attempt in range(3):
@@ -119,6 +123,10 @@ Return ONLY the JSON object, no markdown fences or explanation."""
                 logger.warning("Returning original draft after review failure")
                 return draft
 
+        logger.warning(
+            f"All rate-limit retries exhausted for '{repo_name}'. "
+            f"Returning original draft without Opus review."
+        )
         return draft
 
     def _call_anthropic(self, user_prompt: str) -> str:
@@ -158,9 +166,9 @@ Return ONLY the JSON object, no markdown fences or explanation."""
                 raise RuntimeError("No text content in Anthropic response")
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                raise RateLimitError("Anthropic rate limit exceeded")
+                raise RateLimitError("Anthropic rate limit exceeded") from e
             body = e.read().decode() if e.readable() else str(e)
-            raise RuntimeError(f"Anthropic API error {e.code}: {body}")
+            raise RuntimeError(f"Anthropic API error {e.code}: {body}") from e
 
     def _parse_json_response(self, raw: str) -> dict:
         """Extract and parse JSON from response."""
@@ -169,6 +177,31 @@ Return ONLY the JSON object, no markdown fences or explanation."""
             raw = re.sub(r'^```\w*\s*\n?', '', raw)
             raw = re.sub(r'\n?```\s*$', '', raw)
         return json.loads(raw)
+
+
+def _truncate_for_prompt(obj, max_keys: int = 20, max_str_len: int = 500,
+                         max_list_len: int = 10):
+    """Create a truncated-safe copy of a dict/list for prompt inclusion.
+
+    Ensures the serialized result is always well-formed JSON by truncating
+    values before serialization rather than slicing the serialized string.
+    """
+    if isinstance(obj, dict):
+        keys = list(obj.keys())[:max_keys]
+        return {
+            k: _truncate_for_prompt(obj[k], max_keys, max_str_len, max_list_len)
+            for k in keys
+        }
+    elif isinstance(obj, list):
+        return [
+            _truncate_for_prompt(item, max_keys, max_str_len, max_list_len)
+            for item in obj[:max_list_len]
+        ]
+    elif isinstance(obj, str):
+        if len(obj) > max_str_len:
+            return obj[:max_str_len] + "..."
+        return obj
+    return obj
 
 
 class RateLimitError(Exception):
