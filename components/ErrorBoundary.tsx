@@ -9,12 +9,13 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // FIX: Reverted to class property initializer for state and removed the 'public' keyword.
-  // The 'public' keyword is not valid JavaScript and caused the syntax error.
-  // Class properties are public by default.
-  state: State = {
-    hasError: false
-  };
+  // FIX: Initialize state within the constructor.
+  // Using a constructor is the standard way to initialize state and ensures `super(props)` is called,
+  // making `this.props` and `this.state` available throughout the component.
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
   static getDerivedStateFromError(_: Error): State {
     return { hasError: true };

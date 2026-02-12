@@ -160,12 +160,12 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
         <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">{project.name}</h1>
         <p className="text-lg text-gray-400 mb-4">{project.description}</p>
         <div className="flex flex-wrap gap-3 my-4">
-            <a href={`https://github.com/samueljackson-collab/Portfolio-Project/tree/main/${project.github_path}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md border border-transparent hover:border-teal-500 hover:bg-gray-600 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={`View ${project.name} on GitHub (opens in a new tab)`}>
+            <a href={`https://github.com/samueljackson-collab/Portfolio-Project/tree/main/${project.github_path}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md border border-transparent hover:border-teal-500 hover:bg-gray-600 transition-all duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={`View ${project.name} on GitHub (opens in a new tab)`}>
                 <GitHubIcon />
                 <span>View on GitHub</span>
                 <ExternalLinkIcon/>
             </a>
-            <a href="https://github.com/samueljackson-collab/Portfolio-Project/archive/refs/heads/main.zip" target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md border border-transparent hover:border-teal-500 hover:bg-gray-600 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label="Download project source code as a zip file">
+            <a href="https://github.com/samueljackson-collab/Portfolio-Project/archive/refs/heads/main.zip" target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md border border-transparent hover:border-teal-500 hover:bg-gray-600 transition-all duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label="Download project source code as a zip file">
                 <DownloadIcon />
                 <span>Download Source</span>
             </a>

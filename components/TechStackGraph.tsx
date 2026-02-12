@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import type { Project } from '../types';
@@ -167,8 +168,8 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
         const mainGroup = svg.append("g");
 
         const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink<NodeData, LinkData>(links).id(d => d.id).strength(0.5))
-            .force("charge", d3.forceManyBody())
+            .force("link", d3.forceLink<NodeData, LinkData>(links).id(d => d.id).distance(120).strength(0.5))
+            .force("charge", d3.forceManyBody().strength(-200))
             .force("collide", d3.forceCollide<NodeData>().radius(d => d.radius + 8))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .alphaDecay(0.05);
@@ -250,14 +251,28 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
         node
             .on('mouseover', function(event, d) {
                 if (d.group !== 0) {
-                    if (!pinnedNode) { setTooltipNode({ data: d, position: { top: event.clientY, left: event.clientX } }); }
-                    d3.select(this).select('circle').style('filter', 'drop-shadow(0 0 4px #2DD4BF)');
+                    if (!pinnedNode) {
+                        setTooltipNode({ data: d, position: { top: event.clientY, left: event.clientX } });
+                        node.style('opacity', n => (n === d || n.group === 0) ? 1 : 0.3);
+                        link.style('stroke-opacity', l => (l.source === d || l.target === d) ? 0.9 : 0.2);
+                    }
+                    if (!pinnedNode || pinnedNode.id !== d.id) {
+                         d3.select(this).select('circle').transition().duration(150)
+                            .attr('r', d => d.radius * 1.15)
+                            .style('filter', 'drop-shadow(0 0 6px #2DD4BF)');
+                    }
                 }
             })
             .on('mouseout', function(event, d) {
-                if (!pinnedNode) { setTooltipNode(null); }
+                if (!pinnedNode) {
+                    setTooltipNode(null);
+                    node.style('opacity', 1);
+                    link.style('stroke-opacity', 0.6);
+                }
                 if (!pinnedNode || d.id !== pinnedNode.id) {
-                    d3.select(this).select('circle').style('filter', 'none');
+                     d3.select(this).select('circle').transition().duration(150)
+                        .attr('r', d => d.radius)
+                        .style('filter', 'none');
                 }
             })
             .on('click', function(event, d) {
