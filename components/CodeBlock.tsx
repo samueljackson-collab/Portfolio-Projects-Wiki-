@@ -59,7 +59,7 @@ interface CodeBlockProps {
 }
 
 const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
-    const [isCopied, setIsCopied] = useState(false);
+    const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
     const [isExpanded, setIsExpanded] = useState(false);
     const [theme, setTheme] = useState<Theme>('dark');
     const [showLineNumbers, setShowLineNumbers] = useState(false);
@@ -97,10 +97,11 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
 
     const handleCopy = () => {
         navigator.clipboard.writeText(code).then(() => {
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000);
-        }).catch(err => {
-            console.error('Failed to copy text: ', err);
+            setCopyState('copied');
+            setTimeout(() => setCopyState('idle'), 2000);
+        }).catch(() => {
+            setCopyState('failed');
+            setTimeout(() => setCopyState('idle'), 2000);
         });
     };
 
@@ -160,11 +161,11 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                     ))}
                 </div>
                  <div className="relative flex items-center">
-                    <span 
-                        className={`text-xs text-teal-400 transition-opacity duration-300 ${isCopied ? 'opacity-100' : 'opacity-0'}`}
+                    <span
+                        className={`text-xs transition-opacity duration-300 ${copyState !== 'idle' ? 'opacity-100' : 'opacity-0'} ${copyState === 'failed' ? 'text-red-400' : 'text-teal-400'}`}
                         style={{ transform: 'translateX(-4px)' }}
                     >
-                        Copied!
+                        {copyState === 'copied' ? 'Copied!' : copyState === 'failed' ? 'Failed' : ''}
                     </span>
                     <button
                         onClick={handleCopy}
@@ -172,7 +173,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                         aria-label="Copy code to clipboard"
                         title="Copy code"
                     >
-                        {isCopied ? <CheckIcon /> : <CopyIcon />}
+                        {copyState === 'copied' ? <CheckIcon /> : <CopyIcon />}
                     </button>
                  </div>
             </div>

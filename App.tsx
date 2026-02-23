@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ProjectDetail from './components/ProjectDetail';
+import ErrorBoundary from './components/ErrorBoundary';
 import { PROJECTS_DATA } from './constants';
 import type { Project } from './types';
 
@@ -57,7 +58,9 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-        {selectedProject && <ProjectDetail project={selectedProject} allProjects={PROJECTS_DATA} onSelectProject={handleSelectProject} />}
+        <ErrorBoundary>
+          {selectedProject && <ProjectDetail project={selectedProject} allProjects={PROJECTS_DATA} onSelectProject={handleSelectProject} />}
+        </ErrorBoundary>
       </main>
     </div>
   );

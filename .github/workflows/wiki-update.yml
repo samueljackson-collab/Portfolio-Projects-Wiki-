@@ -85,6 +85,7 @@ jobs:
             wiki-generator/.output/
             wiki-generator/.drafts/
             wiki-generator/.reviewed/
+          if-no-files-found: ignore
           retention-days: 30
 
       - name: Check for generated entries

@@ -86,6 +86,18 @@ const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.
     );
 };
 
+/** Parse **bold** markdown into React elements safely, avoiding dangerouslySetInnerHTML. */
+const BoldText: React.FC<{ text: string; boldClass?: string }> = ({ text, boldClass = "text-gray-100" }) => {
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    return (
+        <>
+            {parts.map((part, i) =>
+                i % 2 === 1 ? <strong key={i} className={boldClass}>{part}</strong> : part
+            )}
+        </>
+    );
+};
+
 const statusConfig: Record<Project['status'], { color: string }> = {
   "Production Ready": { color: 'bg-green-600' },
   "Advanced": { color: 'bg-blue-600' },
@@ -223,9 +235,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onS
           <h3 className="text-xl font-semibold text-white mb-2">{problemContext.title}</h3>
           <p className="text-lg leading-relaxed mb-6 whitespace-pre-line">{problemContext.context}</p>
           <h4 className="text-lg font-semibold text-gray-200 mt-6 mb-3">Business Impact</h4>
-          <ul className="list-disc pl-5 space-y-2"> {problemContext.business_impact.map(item => <li key={item} dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-100">$1</strong>') }} />)} </ul>
+          <ul className="list-disc pl-5 space-y-2"> {problemContext.business_impact.map(item => <li key={item}><BoldText text={item} /></li>)} </ul>
           <h4 className="text-lg font-semibold text-gray-200 mt-6 mb-3">Solution Approach</h4>
-          <ul className="list-disc pl-5 space-y-2"> {problemContext.solution_approach.map(item => <li key={item} dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-100">$1</strong>') }} />)} </ul>
+          <ul className="list-disc pl-5 space-y-2"> {problemContext.solution_approach.map(item => <li key={item}><BoldText text={item} /></li>)} </ul>
       </Section>
       
       <Section title="Learning Objectives" icon={<GraduationCapIcon />}>
@@ -247,7 +259,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onS
           </div>
           <div className="mt-4 p-4 bg-blue-900/20 border-l-4 border-blue-400 text-blue-200 rounded-r-lg">
              <strong className="block font-semibold">Real-World Scenario</strong>
-             <p className="mt-1" dangerouslySetInnerHTML={{ __html: architectureDef.real_world_scenario.replace(/\*\*(.*?)\*\*/g, '<strong class="text-teal-400 font-semibold">$1</strong>') }} />
+             <p className="mt-1"><BoldText text={architectureDef.real_world_scenario} boldClass="text-teal-400 font-semibold" /></p>
           </div>
       </Section>
       
@@ -318,14 +330,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onS
                     {dive.real_world_scenario &&
                         <div className="mt-4 p-4 bg-blue-900/20 border-l-4 border-blue-400 text-blue-200 rounded-r-lg">
                             <strong className="block font-semibold">Real-World Scenario</strong>
-                            <p className="mt-1" dangerouslySetInnerHTML={{ __html: dive.real_world_scenario.replace(/\*\*(.*?)\*\*/g, '<strong class="text-teal-400 font-semibold">$1</strong>') }} />
+                            <p className="mt-1"><BoldText text={dive.real_world_scenario} boldClass="text-teal-400 font-semibold" /></p>
                         </div>
                     }
 
                     {dive.code_example && <CodeBlock language={lang} code={code.trim()} />}
                     
                     <strong className="text-gray-200 mt-4 block">Key Benefits:</strong>
-                    <ul className="list-disc pl-5 my-2 space-y-1"> {dive.benefits.map(b => <li key={b} dangerouslySetInnerHTML={{ __html: b.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-100">$1</strong>') }} />)} </ul>
+                    <ul className="list-disc pl-5 my-2 space-y-1"> {dive.benefits.map(b => <li key={b}><BoldText text={b} /></li>)} </ul>
                     
                     {dive.best_practices && <><strong className="text-gray-200 mt-4 block">Best Practices:</strong><ul className="my-2 space-y-2"> {dive.best_practices.map(bp => <li key={bp} className="flex items-start"><CheckCircleIcon/><span>{bp}</span></li>)} </ul></>}
                     
