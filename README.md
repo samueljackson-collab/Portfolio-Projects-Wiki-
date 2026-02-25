@@ -190,9 +190,9 @@ Projects are grouped into the following status bands:
 | Technology         | Version (declared) | Role                           |
 | ------------------ | ------------------ | ------------------------------ |
 | React              | 19.2.x             | UI rendering                   |
-| TypeScript         | 5.8.x              | Type safety and shared models  |
-| Vite               | 6.x                | Dev server and build tooling   |
-| @vitejs/plugin-react| 5.x               | React integration for Vite     |
+| TypeScript         | 5.2.x              | Type safety and shared models  |
+| Vite               | 5.3.x              | Dev server and build tooling   |
+| @vitejs/plugin-react| 4.3.x             | React integration for Vite     |
 | D3                 | 7.x                | Graph and visualization rendering |
 | Tailwind CSS (CDN) | Runtime CDN        | Utility-first UI styling       |
 
