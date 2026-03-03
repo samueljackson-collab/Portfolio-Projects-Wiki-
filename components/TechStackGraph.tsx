@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import type { Project } from '../types';
-import { TECH_PURPOSES, TECHNOLOGY_METADATA } from '../constants';
+import { TECHNOLOGY_METADATA } from '../constants';
 
 interface TechStackGraphProps {
   project: Project;
@@ -11,6 +11,7 @@ interface TechStackGraphProps {
 }
 
 interface NodeData extends d3.SimulationNodeDatum {
+    type: 'project' | 'tech' | 'adr';
     id: string;
     group: number;
     radius: number;
@@ -20,7 +21,7 @@ interface NodeData extends d3.SimulationNodeDatum {
     fy?: number | null;
 }
 
-interface LinkData extends d3.SimulationLinkDatum<NodeData> {}
+
 
 const CATEGORY_COLORS = d3.scaleOrdinal(
     [
@@ -36,7 +37,7 @@ const ExternalLinkIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="
 const Tooltip: React.FC<{ activeNode: { data: NodeData, position: { top: number, left: number } } | null; isPinned: boolean; }> = ({ activeNode, isPinned }) => {
     if (!activeNode) return null;
 
-    const purpose = TECH_PURPOSES[activeNode.data.id] || (activeNode.data.group === 0 ? "Project Hub" : 'Core technology');
+    const purpose = TECHNOLOGY_METADATA[activeNode.data.id]?.purpose || (activeNode.data.group === 0 ? "Project Hub" : 'Core technology');
     const learnMoreLink = `https://www.google.com/search?q=${encodeURIComponent(activeNode.data.id)}+documentation`;
     
     const pulseClass = isPinned ? 'animate-pulse' : '';
@@ -65,6 +66,11 @@ const Tooltip: React.FC<{ activeNode: { data: NodeData, position: { top: number,
 
 const getStorageKey = (slug: string) => `tech-stack-graph-state-${slug}`;
 
+interface LinkData {
+  source: string | NodeData;
+  target: string | NodeData;
+}
+
 const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, allProjects }) => {
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -73,7 +79,7 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
     const [isExpanded, setIsExpanded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
-    const simulationRef = useRef<d3.Simulation<NodeData, any> | null>(null);
+    const simulationRef = useRef<d3.Simulation<NodeData, d3.SimulationLinkDatum<NodeData>> | null>(null);
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
 
     // Load state from localStorage when project changes
@@ -100,6 +106,7 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             const newState = { ...savedState, isExpanded };
             localStorage.setItem(key, JSON.stringify(newState));
         } catch (e) {
+            console.error("Failed to save isExpanded state:", e);
             const newState = { isExpanded };
             localStorage.setItem(key, JSON.stringify(newState));
         }
@@ -144,19 +151,48 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
         const height = 400;
         const key = getStorageKey(project.slug);
 
+                const adrNodes: NodeData[] = (project.adrs || []).map(adr => ({
+            id: adr.id,
+            group: 2, // ADR group
+            radius: 12,
+            type: 'adr',
+        }));
+
+        const techNodes: NodeData[] = project.technologies.map(tech => ({
+            id: tech,
+            group: 1, // Tech group
+            radius: techFrequencies[tech] ? radiusScale(techFrequencies[tech]) : 15,
+            type: 'tech',
+        }));
+
         const nodes: NodeData[] = [
-            { id: project.name, group: 0, radius: 25, fx: null, fy: null },
-            ...project.technologies.map(tech => ({
-                id: tech,
-                group: 1,
-                radius: techFrequencies[tech] ? radiusScale(techFrequencies[tech]) : 15,
-            }))
+            { id: project.name, group: 0, radius: 25, fx: null, fy: null, type: 'project' },
+            { id: project.name, group: 0, radius: 25, fx: null, fy: null, type: 'project' },
+            ...techNodes,
+            ...adrNodes
         ];
 
-        const links: Omit<LinkData, 'source' | 'target'> & { source: string; target: string }[] = project.technologies.map(tech => ({
+                const techLinks = project.technologies.map(tech => ({
             source: tech,
             target: project.name
         }));
+
+        const adrLinks = (project.adrs || []).flatMap(adr => {
+            const relatedLinks: { source: string, target: string }[] = [];
+            // Link ADR to project hub
+            relatedLinks.push({ source: adr.id, target: project.name });
+
+            // Link ADR to technologies mentioned in it
+            project.technologies.forEach(tech => {
+                const techRegex = new RegExp(`\b${tech}\b`, 'i');
+                if (techRegex.test(adr.decision) || techRegex.test(adr.context)) {
+                    relatedLinks.push({ source: adr.id, target: tech });
+                }
+            });
+            return relatedLinks;
+        });
+
+        const links: Omit<LinkData, 'source' | 'target'> & { source: string; target: string }[] = [...techLinks, ...adrLinks];
 
         const svg = d3.select(svgRef.current)
             .attr('width', width)
@@ -194,11 +230,13 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
         node.append("circle")
             .attr("r", d => d.radius)
             .attr("fill", d => {
+                if (d.type === 'adr') return '#FFD700'; // Gold for ADRs
                 if (d.group === 0) return "#2DD4BF";
                 const meta = TECHNOLOGY_METADATA[d.id];
                 return meta ? CATEGORY_COLORS(meta.category) : "#374151";
             })
             .attr("stroke", d => {
+                if (d.type === 'adr') return d3.color('#FFD700')?.darker(0.7).toString();
                 if (d.group === 0) return "#14B8A6";
                 const meta = TECHNOLOGY_METADATA[d.id];
                 return meta ? d3.color(CATEGORY_COLORS(meta.category))?.darker(0.7).toString() : "#4A5568";
@@ -212,7 +250,11 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             .attr("text-anchor", "middle")
             .attr("dy", "0.3em")
             .attr("fill", "white")
-            .style("font-size", d => d.group === 0 ? "12px" : "10px")
+            .style("font-size", d => {
+                if (d.type === 'project') return '12px';
+                if (d.type === 'adr') return '9px';
+                return '10px';
+            })
             .style("pointer-events", "none")
             .style("font-weight", d => d.group === 0 ? "bold" : "normal")
             .style("transition", "opacity 0.3s ease");
@@ -226,12 +268,13 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
                     const newState = { ...savedState, transform: { k: event.transform.k, x: event.transform.x, y: event.transform.y } };
                     localStorage.setItem(key, JSON.stringify(newState));
                 } catch (e) {
+                    console.error("Failed to save zoom state:", e);
                     const newState = { isExpanded, transform: { k: event.transform.k, x: event.transform.x, y: event.transform.y } };
                     localStorage.setItem(key, JSON.stringify(newState));
                 }
             });
         
-        svg.call(zoom as any);
+        svg.call(zoom);
         zoomRef.current = zoom;
 
         try {
@@ -244,17 +287,17 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
                     svg.call(zoom.transform, transform);
                 }
             }
-        } catch(e) {
+        } catch (e) {
             console.error("Failed to apply saved graph state:", e);
         }
 
         node
             .on('mouseover', function(event, d) {
-                if (d.group !== 0) {
+                if (d.type === 'tech' || d.type === 'adr') {
                     if (!pinnedNode) {
                         setTooltipNode({ data: d, position: { top: event.clientY, left: event.clientX } });
-                        node.style('opacity', n => (n === d || n.group === 0) ? 1 : 0.3);
-                        link.style('stroke-opacity', l => (l.source === d || l.target === d) ? 0.9 : 0.2);
+                        node.style('opacity', n => (n === d || n.type === 'project') ? 1 : 0.3);
+                        link.style('stroke-opacity', l => ((l.source as NodeData).id === d.id || (l.target as NodeData).id === d.id) ? 0.9 : 0.2);
                     }
                     if (!pinnedNode || pinnedNode.id !== d.id) {
                          d3.select(this).select('circle').transition().duration(150)
@@ -277,7 +320,7 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             })
             .on('click', function(event, d) {
                 event.stopPropagation();
-                if (d.group !== 0) {
+                if (d.type === 'tech' || d.type === 'adr') {
                     setPinnedNode(d);
                     setTooltipNode({ data: d, position: { top: event.clientY, left: event.clientX } });
                 }
@@ -292,18 +335,18 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
             node.attr("transform", d => `translate(${d.x}, ${d.y})`);
         });
 
-        function drag(simulation: d3.Simulation<NodeData, undefined>) {
-            function dragstarted(event: d3.D3DragEvent<Element, NodeData, any>, d: NodeData) {
+        function drag(simulation: d3.Simulation<NodeData, d3.SimulationLinkDatum<NodeData>>) {
+            function dragstarted(event: d3.D3DragEvent<Element, NodeData, NodeData>, d: NodeData) {
                 if (!event.active) simulation.alphaTarget(0.3).restart();
                 d.fx = d.x; d.fy = d.y;
                 setPinnedNode(null); setTooltipNode(null);
             }
-            function dragged(event: d3.D3DragEvent<Element, NodeData, any>, d: NodeData) { d.fx = event.x; d.fy = event.y; }
-            function dragended(event: d3.D3DragEvent<Element, NodeData, any>, d: NodeData) {
+            function dragged(event: d3.D3DragEvent<Element, NodeData, NodeData>, d: NodeData) { d.fx = event.x; d.fy = event.y; }
+            function dragended(event: d3.D3DragEvent<Element, NodeData, NodeData>, d: NodeData) {
                 if (!event.active) simulation.alphaTarget(0);
                 d.fx = null; d.fy = null;
             }
-            return d3.drag<any, NodeData>().on("start", dragstarted).on("drag", dragged).on("end", dragended);
+            return d3.drag<SVGGElement, NodeData>().on("start", dragstarted).on("drag", dragged).on("end", dragended);
         }
         
         const handleKeyDown = (event: KeyboardEvent) => {

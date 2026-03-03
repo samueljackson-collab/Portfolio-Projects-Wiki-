@@ -1,17 +1,20 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import type { Project, ProblemContext, ArchitectureDefinition, KeyConcept } from '../types';
+import type { Project, ProblemContext, ArchitectureDefinition, KeyConcept, ArchitectureDecisionRecord, ExternalLink } from '../types';
 // FIX: Corrected import paths and added missing imports that were causing errors.
-import { PROJECTS_DATA, TECHNOLOGY_DEEP_DIVES, PROBLEM_CONTEXTS, ARCHITECTURE_DEFINITIONS } from '../constants';
+import { TECHNOLOGY_DEEP_DIVES, PROBLEM_CONTEXTS, ARCHITECTURE_DEFINITIONS, TECH_PURPOSES } from '../constants';
 import ProgressBar from './ProgressBar';
 import CodeBlock from './CodeBlock';
 import TechStackGraph from './TechStackGraph';
 import ProjectInsights from './ProjectInsights';
+import CicdWorkflowDiagram from './CicdWorkflowDiagram';
+import Roadmap from './Roadmap';
+import AdrGraph from './AdrGraph';
 import { 
     GitHubIcon, InfoIcon, CheckCircleIcon, XCircleIcon, ExternalLinkIcon, DownloadIcon, 
-    SummaryIcon, LightbulbIcon, TargetIcon, GraduationCapIcon, ArchitectureIcon, 
+    SummaryIcon, TargetIcon, GraduationCapIcon, ArchitectureIcon, 
     ToolsIcon, MicroscopeIcon, BookIcon, GearsIcon, LinkIcon, ResourcesIcon, 
-    PhotographIcon, MatrixIcon, DecisionIcon, ShieldBugIcon, WorkflowIcon,
+    PhotographIcon, DecisionIcon, ShieldBugIcon, WorkflowIcon,
     DocumentTextIcon
 } from './Icons';
 
@@ -88,12 +91,79 @@ const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.
     );
 };
 
-const statusConfig: Record<Project['status'], { color: string }> = {
-  "Production Ready": { color: 'bg-green-600' },
-  "Advanced": { color: 'bg-blue-600' },
-  "Substantial": { color: 'bg-purple-600' },
-  "In Development": { color: 'bg-yellow-600' },
-  "Basic": { color: 'bg-gray-600' },
+const AdrTimeline: React.FC<{ adrs: ArchitectureDecisionRecord[] }> = ({ adrs }) => {
+    return (
+        <div className="space-y-6">
+            {adrs.map((adr, index) => (
+                <div key={adr.id} className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 hover:bg-gray-800/60 transition-all duration-300">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 font-bold text-xs mr-3 border border-teal-500/30">
+                                {index + 1}
+                            </span>
+                            <h3 className="text-lg font-bold text-white">{adr.title}</h3>
+                        </div>
+                        <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${
+                            adr.status.toLowerCase() === 'accepted' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        }`}>
+                            {adr.status}
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Context</h4>
+                            <p className="text-gray-300 leading-relaxed">{adr.context}</p>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Decision</h4>
+                            <p className="text-gray-300 leading-relaxed font-medium text-teal-100/90">{adr.decision}</p>
+                        </div>
+                    </div>
+                    {adr.consequences && (
+                        <div className="mt-3 pt-3 border-t border-gray-700/50">
+                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Consequences</h4>
+                            <p className="text-gray-400 text-xs italic leading-relaxed">{adr.consequences}</p>
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const ExternalLinksList: React.FC<{ links: ExternalLink[] }> = ({ links }) => {
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {links.map((link, index) => (
+                <a 
+                    key={index} 
+                    href={link.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="group bg-gray-800/40 border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 hover:border-teal-500/50 transition-all duration-300 flex items-start"
+                >
+                    <div className="mr-4 mt-1 p-2 bg-gray-900 rounded-md text-teal-400 group-hover:text-teal-300 transition-colors">
+                        <LinkIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-white group-hover:text-teal-300 transition-colors flex items-center">
+                            {link.title}
+                            <ExternalLinkIcon className="w-3 h-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </h3>
+                        <p className="text-sm text-gray-400 mt-1">{link.description}</p>
+                    </div>
+                </a>
+            ))}
+        </div>
+    );
+};
+
+const statusConfig: Record<Project['status'], { color: string; icon: React.ReactNode }> = {
+  "Production Ready": { color: 'bg-green-600', icon: <CheckCircleIcon className="w-4 h-4 mr-2" /> },
+  "Advanced": { color: 'bg-blue-600', icon: <CheckCircleIcon className="w-4 h-4 mr-2" /> },
+  "Substantial": { color: 'bg-purple-600', icon: <CheckCircleIcon className="w-4 h-4 mr-2" /> },
+  "In Development": { color: 'bg-yellow-600', icon: <XCircleIcon className="w-4 h-4 mr-2" /> },
+  "Basic": { color: 'bg-gray-600', icon: <XCircleIcon className="w-4 h-4 mr-2" /> },
 };
 
 export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onSelectProject }) => {
@@ -171,10 +241,24 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
             </a>
         </div>
         <div className="flex items-center space-x-4 mb-4">
-            <span className={`inline-block px-3 py-1 text-sm font-semibold text-white ${projectStatusConfig.color} rounded-full`}>{project.status}</span>
+            <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold text-white ${projectStatusConfig.color} rounded-full`}>
+              {projectStatusConfig.icon}
+              {project.status}
+            </span>
             <ProgressBar percentage={project.completion_percentage} />
         </div>
-        <div className="flex flex-wrap gap-2"> {project.tags.map(tag => ( <span key={tag} className="px-3 py-1 text-xs font-medium text-cyan-200 bg-gray-700 rounded-full">{tag}</span> ))} </div>
+        <div className="flex flex-wrap gap-2">
+          {project.tags.map(tag => (
+            <button 
+              key={tag} 
+              onClick={() => handleSetActiveTag(tag === activeTag ? null : tag)}
+              className={`${tagButtonBaseClasses} ${activeTag === tag ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'bg-gray-700 text-cyan-200 hover:bg-gray-600'}`}
+              aria-pressed={activeTag === tag}
+            >
+              <TagIcon tag={tag} /> {tag}
+            </button>
+          ))}
+        </div>
       </header>
       
       <Section title="Project Metadata" icon={<InfoIcon />}>
@@ -255,9 +339,22 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
           </div>
       </Section>
       
-      {project.adr && (
+      {project.adrs && project.adrs.length > 0 && (
         <Section title="Architecture Decision Records" icon={<DecisionIcon />}>
-            <CodeBlock language="markdown" code={project.adr} />
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-300 mb-4">ADR Relationship Graph</h3>
+            <div className="p-4 bg-gray-900 rounded-xl overflow-hidden">
+                <AdrGraph content={project.adr || ''} />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-300 mb-4">Decision Timeline</h3>
+          <AdrTimeline adrs={project.adrs} />
+        </Section>
+      )}
+
+      {project.adr && (!project.adrs || project.adrs.length === 0) && (
+        <Section title="Architecture Decision Records" icon={<DecisionIcon />}>
+          <AdrGraph content={project.adr} />
         </Section>
       )}
 
@@ -295,11 +392,31 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
               </summary>
               <div className="p-4 border-t border-gray-700 text-gray-400 text-sm">
                 <p>
-                  This section details the implementation of the '<strong>{feature}</strong>' feature. It covers the core logic, data models, and service interactions. The component is designed for modularity and follows established design patterns to ensure maintainability and testability within the project's architecture.
+                  This section details the implementation of the &apos;<strong>{feature}</strong>&apos; feature. It covers the core logic, data models, and service interactions. The component is designed for modularity and follows established design patterns to ensure maintainability and testability within the project&apos;s architecture.
                 </p>
               </div>
             </details>
           ))}
+        </div>
+      </Section>
+
+      <Section title="Technologies Used" icon={<ToolsIcon />}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {project.technologies.map(tech => {
+            
+            const purpose = TECH_PURPOSES[tech] || 'Core technology';
+            const hasDeepDive = deepDives.some(([key]) => key === tech.toLowerCase());
+
+            return (
+              <div key={tech} className="bg-gray-800/50 p-4 rounded-lg">
+                <h4 className="font-bold text-white">{tech}</h4>
+                <p className="text-sm text-gray-400 mt-1">{purpose}</p>
+                {hasDeepDive && (
+                  <a href={`#deep-dive-${tech.toLowerCase()}`} className="text-sm text-blue-400 hover:underline mt-2 inline-block">View Deep Dive</a>
+                )}
+              </div>
+            );
+          })}
         </div>
       </Section>
 
@@ -397,7 +514,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
               )
           })
         ) : (
-          <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-700 rounded-lg bg-gray-800/30 text-center"> <InfoIcon /> <p className="text-gray-500 font-medium">Data Not Available</p> <p className="text-sm text-gray-600 mt-1">No specific technology deep-dives are available for this project's tags.</p> </div>
+          <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-700 rounded-lg bg-gray-800/30 text-center"> <InfoIcon /> <p className="text-gray-500 font-medium">Data Not Available</p> <p className="text-sm text-gray-600 mt-1">No specific technology deep-dives are available for this project&apos;s tags.</p> </div>
         )}
       </Section>
       
@@ -405,7 +522,18 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
         <Section title="CI/CD Workflow" icon={<WorkflowIcon />}>
             <h3 className="text-lg font-semibold text-white mb-2">{project.cicdWorkflow.name}</h3>
             <p className="text-sm text-gray-400 mb-4">Location: <code>{project.cicdWorkflow.path}</code></p>
-            <CodeBlock language="yaml" code={project.cicdWorkflow.content} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-300 mb-2">Workflow Diagram</h4>
+                <div className="p-4 bg-gray-900 rounded-lg">
+                  <CicdWorkflowDiagram workflow={project.cicdWorkflow} />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-gray-300 mb-2">Workflow Code</h4>
+                <CodeBlock language="yaml" code={project.cicdWorkflow.content} />
+              </div>
+            </div>
         </Section>
       )}
       
@@ -429,10 +557,36 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
 
       <Section title="Operational Guide" icon={<GearsIcon />}>
         <h3 className="text-xl font-semibold mt-6 mb-3 text-white">Monitoring & Observability</h3> <ul className="list-disc pl-5 space-y-1"> <li><strong>Metrics</strong>: Key metrics are exposed via Prometheus endpoints</li> <li><strong>Logs</strong>: Structured JSON logging for aggregation</li> <li><strong>Traces</strong>: OpenTelemetry instrumentation for distributed tracing</li> </ul>
-        <h3 className="text-xl font-semibold mt-6 mb-3 text-white">Common Operations</h3> <table className="min-w-full divide-y divide-gray-600"> <thead className="bg-gray-800"> <tr> <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Task</th> <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Command</th> </tr> </thead> <tbody className="bg-gray-800/50 divide-y divide-gray-700"> <tr><td className="px-6 py-4 text-sm font-medium text-white">Health check</td><td className="px-6 py-4 text-sm text-gray-400 font-mono">make health</td></tr> <tr><td className="px-6 py-4 text-sm font-medium text-white">View logs</td><td className="px-6 py-4 text-sm text-gray-400 font-mono">docker-compose logs -f</td></tr> <tr><td className="px-6 py-4 text-sm font-medium text-white">Run tests</td><td className="px-6 py-4 text-sm text-gray-400 font-mono">make test</td></tr> <tr><td className="px-6 py-4 text-sm font-medium text-white">Deploy</td><td className="px-6 py-4 text-sm text-gray-400 font-mono">make deploy</td></tr> </tbody> </table>
+        <h3 className="text-xl font-semibold mt-6 mb-3 text-white">Common Operations</h3>
+<table className="min-w-full divide-y divide-gray-600">
+  <thead className="bg-gray-800">
+    <tr>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Task</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Command</th>
+    </tr>
+  </thead>
+  <tbody className="bg-gray-800/50 divide-y divide-gray-700">
+    <tr>
+      <td className="px-6 py-4 text-sm font-medium text-white">Health check</td>
+      <td className="px-6 py-4 text-sm text-gray-400 font-mono">make health</td>
+    </tr>
+    <tr>
+      <td className="px-6 py-4 text-sm font-medium text-white">View logs</td>
+      <td className="px-6 py-4 text-sm text-gray-400 font-mono">docker-compose logs -f</td>
+    </tr>
+    <tr>
+      <td className="px-6 py-4 text-sm font-medium text-white">Run tests</td>
+      <td className="px-6 py-4 text-sm text-gray-400 font-mono">make test</td>
+    </tr>
+    <tr>
+      <td className="px-6 py-4 text-sm font-medium text-white">Deploy</td>
+      <td className="px-6 py-4 text-sm text-gray-400 font-mono">make deploy</td>
+    </tr>
+  </tbody>
+</table>
         <h3 className="text-xl font-semibold mt-6 mb-3 text-white">Troubleshooting</h3>
         <p className="mb-4 text-sm">
-            For persistent issues, please check existing reports or file a new one on the project's 
+            For persistent issues, please check existing reports or file a new one on the project&apos;s 
             <a href="https://github.com/samueljackson-collab/Portfolio-Project/issues" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-teal-300 hover:underline ml-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 rounded" aria-label="Report issues on GitHub (opens in a new tab)">
                 GitHub issues page<ExternalLinkIcon/>
             </a>.
@@ -446,6 +600,17 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
           </ol>
         </details>
       </Section>
+
+      <Section title="Roadmap" icon={<GearsIcon />}>
+        <Roadmap milestones={project.roadmap} />
+      </Section>
+
+      {project.external_links && project.external_links.length > 0 && (
+          <Section title="External Links" icon={<LinkIcon />}>
+              <ExternalLinksList links={project.external_links} />
+          </Section>
+      )}
+
       
       {relatedProjects.length > 0 && (
           <Section title="Related Projects" icon={<LinkIcon />}>

@@ -1,3 +1,9 @@
+export interface CicdWorkflow {
+  name: string;
+  path: string;
+  content: string;
+}
+
 export interface Project {
   id: number;
   name: string;
@@ -13,11 +19,10 @@ export interface Project {
   readme?: string;
   adr?: string;
   threatModel?: string;
-  cicdWorkflow?: {
-    name: string;
-    path: string;
-    content: string;
-  };
+  cicdWorkflow?: CicdWorkflow;
+  roadmap?: RoadmapMilestone[];
+  adrs?: ArchitectureDecisionRecord[];
+  external_links?: ExternalLink[];
 }
 
 export interface KeyConcept {
@@ -56,4 +61,26 @@ export interface ArchitectureDefinition {
 export interface TechnologyMetadata {
   tags: string[];
   category: 'Cloud & Infrastructure' | 'DevOps & CI/CD' | 'Data & AI' | 'Backend' | 'Security' | 'Blockchain' | 'Frontend & Web' | 'Quantum Computing' | 'HPC & Systems';
+}
+
+export interface RoadmapMilestone {
+  title: string;
+  description: string;
+  target_date: string;
+}
+
+export interface ArchitectureDecisionRecord {
+  id: string;
+  title: string;
+  status: string;
+  context: string;
+  decision: string;
+  consequences: string;
+  relations: { type: string; related_adr_id: string }[];
+}
+
+export interface ExternalLink {
+  title: string;
+  url: string;
+  description: string;
 }

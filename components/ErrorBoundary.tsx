@@ -14,7 +14,7 @@ class ErrorBoundary extends Component<Props, State> {
   // 'state' and 'props' were not found on the component instance.
   public state: State = { hasError: false };
 
-  static getDerivedStateFromError(_: Error): State {
+  static getDerivedStateFromError(): State {
     return { hasError: true };
   }
 

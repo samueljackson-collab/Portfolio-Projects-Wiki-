@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import ProjectPreviewCard from './ProjectPreviewCard';
 import type { Project } from '../types';
 
 interface SidebarProps {
@@ -27,6 +28,7 @@ const fuzzyMatch = (query: string, text: string): boolean => {
 
 const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject, isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [pinnedProject, setPinnedProject] = useState<Project | null>(null);
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const sidebarRef = useRef<HTMLElement>(null);
 
@@ -108,6 +110,13 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
     <>
       {isOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={onClose} aria-hidden="true"></div>}
       <aside ref={sidebarRef} className={sidebarClasses}>
+        {pinnedProject && (
+          <ProjectPreviewCard 
+            project={pinnedProject}
+            onClose={() => setPinnedProject(null)}
+            isPinned={true}
+          />
+        )}
         <div className="flex-shrink-0">
           <h1 className="text-2xl font-bold text-white mb-4 border-b border-gray-600 pb-4">
             Portfolio Projects
@@ -136,15 +145,27 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
                       {groupedProjects[status]
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map(project => (
-                          <li key={project.id} className="mb-1">
-                            <button
-                              onClick={() => onSelectProject(project.slug)}
-                              className={`w-full text-left p-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-transparent focus:text-white focus:bg-gray-700 ${
-                                activeSlug === project.slug ? 'bg-gray-700 text-white font-semibold' : ''
-                              }`}
-                            >
-                              {project.name}
-                            </button>
+                          <li key={project.id} className="mb-1 relative">
+                            <div className="flex items-center justify-between">
+                              <button
+                                onClick={() => onSelectProject(project.slug)}
+                                className={`flex-grow text-left p-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-transparent focus:text-white focus:bg-gray-700 ${
+                                  activeSlug === project.slug ? 'bg-gray-700 text-white font-semibold' : ''
+                                }`}
+                              >
+                                {project.name}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPinnedProject(project);
+                                }}
+                                className="ml-2 px-3 py-1 text-xs font-semibold text-teal-400 bg-teal-400/10 border border-teal-400/20 rounded-md hover:bg-teal-400/20 hover:border-teal-400/40 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 active:scale-95"
+                                title="Click to view project details"
+                              >
+                                About
+                              </button>
+                            </div>
                           </li>
                       ))}
                     </ul>
@@ -158,6 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
              </div>
           )}
         </nav>
+      
       </aside>
     </>
   );

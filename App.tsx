@@ -1,10 +1,10 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
-// FIX: Changed to a named import to resolve the module loading error.
 import { ProjectDetail } from './components/ProjectDetail';
-import { PROJECTS_DATA } from './constants';
-import type { Project } from './types';
+import ErrorBoundary from './components/ErrorBoundary';
+import { ALL_PROJECTS_DATA } from './constants';
+
 
 const MenuIcon = () => (
     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -13,11 +13,11 @@ const MenuIcon = () => (
 );
 
 const App: React.FC = () => {
-  const [selectedProjectSlug, setSelectedProjectSlug] = useState<string>(PROJECTS_DATA[0].slug);
+  const [selectedProjectSlug, setSelectedProjectSlug] = useState<string>(ALL_PROJECTS_DATA[0].slug);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const selectedProject = useMemo(() => {
-    return PROJECTS_DATA.find(p => p.slug === selectedProjectSlug) || PROJECTS_DATA[0];
+    return ALL_PROJECTS_DATA.find(p => p.slug === selectedProjectSlug) || ALL_PROJECTS_DATA[0];
   }, [selectedProjectSlug]);
   
   const handleSelectProject = (slug: string) => {
@@ -51,7 +51,7 @@ const App: React.FC = () => {
       </header>
       
       <Sidebar 
-        projects={PROJECTS_DATA}
+        projects={ALL_PROJECTS_DATA}
         activeSlug={selectedProject.slug}
         onSelectProject={handleSelectProject}
         isOpen={isSidebarOpen}
@@ -59,7 +59,9 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-        {selectedProject && <ProjectDetail project={selectedProject} allProjects={PROJECTS_DATA} onSelectProject={handleSelectProject} />}
+        <ErrorBoundary>
+          {selectedProject && <ProjectDetail project={selectedProject} allProjects={ALL_PROJECTS_DATA} onSelectProject={handleSelectProject} />}
+        </ErrorBoundary>
       </main>
     </div>
   );

@@ -95,10 +95,10 @@ const TechnologyCategoryBreakdownChart: React.FC<{ technologies: string[] }> = (
 
     useEffect(() => {
         if (!svgRef.current) return;
-        d3.select(svgRef.current).selectAll('.arc path')
+        d3.select(svgRef.current).selectAll<SVGPathElement, d3.PieArcDatum<{ name: string; value: number }>>('.arc path')
             .transition().duration(200)
-            .style('opacity', d => highlightedCategory === null || (d as any).data.name === highlightedCategory ? 1 : 0.3)
-            .attr('transform', d => highlightedCategory === (d as any).data.name ? 'scale(1.05)' : 'scale(1)');
+            .style('opacity', d => highlightedCategory === null || d.data.name === highlightedCategory ? 1 : 0.3)
+            .attr('transform', d => highlightedCategory === d.data.name ? 'scale(1.05)' : 'scale(1)');
     }, [highlightedCategory]);
 
     return (
@@ -285,7 +285,7 @@ const ProjectInsights: React.FC<ProjectInsightsProps> = ({ project }) => {
             
             <Section title="Feature Complexity" icon={<MatrixIcon />}>
                 <p className="mb-4">
-                    This chart visualizes the estimated complexity of each project feature. Complexity is derived from the feature's name length, combined with a deterministic hash of the name to create a consistent, pseudo-random score. This provides a simple, repeatable metric for relative comparison.
+                    This chart visualizes the estimated complexity of each project feature. Complexity is derived from the feature&apos;s name length, combined with a deterministic hash of the name to create a consistent, pseudo-random score. This provides a simple, repeatable metric for relative comparison.
                 </p>
                 <FeatureComplexityChart features={project.features} />
             </Section>

@@ -17,7 +17,6 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["vite/client"]
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["vite.config.ts", "node_modules"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
