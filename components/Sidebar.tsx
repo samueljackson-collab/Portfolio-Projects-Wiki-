@@ -1,4 +1,9 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { 
+  Cloud, Database, Shield, Box, Cpu, Wifi, Terminal, Activity, 
+  BarChart, Zap, Image as ImageIcon, Blocks, LayoutTemplate, 
+  Smartphone, Server, FolderGit2, Info
+} from 'lucide-react';
 import ProjectPreviewCard from './ProjectPreviewCard';
 import type { Project } from '../types';
 
@@ -25,6 +30,63 @@ const fuzzyMatch = (query: string, text: string): boolean => {
     return queryIndex === query.length;
 };
 
+const getProjectIcon = (project: Project) => {
+  const tags = project.tags.map(t => t.toLowerCase());
+  const technologies = project.technologies.map(t => t.toLowerCase());
+  const allKeywords = [...tags, ...technologies];
+  
+  const iconClass = "w-4 h-4 mr-3 flex-shrink-0";
+
+  if (allKeywords.some(k => ['aws', 'cloud', 'azure', 'gcp', 'terraform'].includes(k))) 
+    return <Cloud className={`${iconClass} text-teal-400`} />;
+    
+  if (allKeywords.some(k => ['database', 'sql', 'timescaledb', 'data-lake', 'postgres', 'redis', 'sqlite'].includes(k))) 
+    return <Database className={`${iconClass} text-blue-400`} />;
+    
+  if (allKeywords.some(k => ['security', 'cybersecurity', 'cryptography', 'devsecops', 'auth', 'oauth', 'vault'].includes(k))) 
+    return <Shield className={`${iconClass} text-red-400`} />;
+    
+  if (allKeywords.some(k => ['kubernetes', 'docker', 'containers', 'helm', 'argo'].includes(k))) 
+    return <Box className={`${iconClass} text-blue-500`} />;
+    
+  if (allKeywords.some(k => ['ai', 'ml', 'machine-learning', 'llm', 'mlops', 'openai', 'gpt', 'rag'].includes(k))) 
+    return <Cpu className={`${iconClass} text-purple-400`} />;
+    
+  if (allKeywords.some(k => ['iot', 'mqtt', 'embedded'].includes(k))) 
+    return <Wifi className={`${iconClass} text-orange-400`} />;
+    
+  if (allKeywords.some(k => ['blockchain', 'web3', 'solidity', 'smart-contracts', 'ethereum'].includes(k))) 
+    return <Blocks className={`${iconClass} text-yellow-400`} />;
+    
+  if (allKeywords.some(k => ['web', 'react', 'vue', 'frontend', 'next.js', 'ui', 'vitepress'].includes(k))) 
+    return <LayoutTemplate className={`${iconClass} text-green-400`} />;
+    
+  if (allKeywords.some(k => ['mobile', 'ios', 'android', 'react-native'].includes(k))) 
+    return <Smartphone className={`${iconClass} text-indigo-400`} />;
+    
+  if (allKeywords.some(k => ['devops', 'ci-cd', 'automation', 'infrastructure', 'ansible', 'bash'].includes(k))) 
+    return <Terminal className={`${iconClass} text-gray-400`} />;
+    
+  if (allKeywords.some(k => ['monitoring', 'observability', 'grafana', 'prometheus'].includes(k))) 
+    return <Activity className={`${iconClass} text-pink-400`} />;
+    
+  if (allKeywords.some(k => ['data-engineering', 'analytics', 'streaming', 'kafka', 'spark'].includes(k))) 
+    return <BarChart className={`${iconClass} text-indigo-400`} />;
+    
+  if (allKeywords.some(k => ['serverless', 'lambda', 'functions'].includes(k))) 
+    return <Zap className={`${iconClass} text-yellow-500`} />;
+    
+  if (allKeywords.some(k => ['quantum-computing', 'physics'].includes(k))) 
+    return <Cpu className={`${iconClass} text-violet-400`} />;
+    
+  if (allKeywords.some(k => ['photos', 'video', 'media', 'ffmpeg'].includes(k))) 
+    return <ImageIcon className={`${iconClass} text-pink-300`} />;
+    
+  if (allKeywords.some(k => ['api', 'backend', 'server', 'node', 'go', 'python', 'java'].includes(k))) 
+    return <Server className={`${iconClass} text-slate-400`} />;
+  
+  return <FolderGit2 className={`${iconClass} text-gray-500`} />;
+};
 
 const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject, isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,24 +208,27 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map(project => (
                           <li key={project.id} className="mb-1 relative">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between group">
                               <button
                                 onClick={() => onSelectProject(project.slug)}
-                                className={`flex-grow text-left p-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-transparent focus:text-white focus:bg-gray-700 ${
+                                className={`flex-grow text-left py-2 px-3 rounded-l-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-transparent focus:text-white focus:bg-gray-700 flex items-center ${
                                   activeSlug === project.slug ? 'bg-gray-700 text-white font-semibold' : ''
                                 }`}
                               >
-                                {project.name}
+                                {getProjectIcon(project)}
+                                <span className="truncate text-sm">{project.name}</span>
                               </button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setPinnedProject(project);
                                 }}
-                                className="ml-2 px-3 py-1 text-xs font-semibold text-teal-400 bg-teal-400/10 border border-teal-400/20 rounded-md hover:bg-teal-400/20 hover:border-teal-400/40 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 active:scale-95"
-                                title="Click to view project details"
+                                className={`p-2 rounded-r-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 flex-shrink-0 ${
+                                   activeSlug === project.slug ? 'bg-gray-700 text-teal-400' : 'text-gray-500 hover:text-teal-400 hover:bg-gray-700'
+                                }`}
+                                title="View project details"
                               >
-                                About
+                                <Info className="w-4 h-4" />
                               </button>
                             </div>
                           </li>
