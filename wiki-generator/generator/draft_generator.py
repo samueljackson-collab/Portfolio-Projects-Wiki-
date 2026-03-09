@@ -134,7 +134,7 @@ class DraftGenerator:
             if e.code == 429:
                 raise RateLimitError("Gemini rate limit exceeded") from e
             body = e.read().decode() if e.readable() else str(e)
-            raise RuntimeError(f"Gemini API error {e.code}") from e
+            raise RuntimeError(f"Gemini API error {e.code}: {body}") from e
 
     def _call_groq(self, model: str, system_prompt: str,
                    user_prompt: str) -> str:
