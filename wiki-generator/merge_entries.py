@@ -85,7 +85,7 @@ def generate_ts_snippet(filename: str = None):
     output_dir = Path(__file__).parent / ".output"
 
     if filename:
-        target = output_dir / filename
+        target = output_dir / os.path.basename(filename)
         if not target.exists():
             print(f"Error: Entry file not found: {filename}", file=sys.stderr)
             sys.exit(1)
