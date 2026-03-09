@@ -58,7 +58,7 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-        <ErrorBoundary>
+        <ErrorBoundary key={selectedProjectSlug}>
           {selectedProject && <ProjectDetail project={selectedProject} allProjects={PROJECTS_DATA} onSelectProject={handleSelectProject} />}
         </ErrorBoundary>
       </main>
