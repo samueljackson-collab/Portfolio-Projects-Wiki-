@@ -9,7 +9,7 @@ export interface Project {
   name: string;
   slug: string;
   description: string;
-  status: "Production Ready" | "Advanced" | "Substantial" | "In Development" | "Basic";
+  status: "Production Ready" | "Advanced" | "Substantial" | "In Development" | "Basic" | "Planned";
   completion_percentage: number;
   tags: string[];
   github_path: string;

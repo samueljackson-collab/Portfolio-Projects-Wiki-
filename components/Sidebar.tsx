@@ -94,7 +94,8 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
     "Advanced",
     "Substantial",
     "In Development",
-    "Basic"
+    "Basic",
+    "Planned"
   ];
 
   const sidebarClasses = `

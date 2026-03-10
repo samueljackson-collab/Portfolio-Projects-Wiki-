@@ -164,6 +164,7 @@ const statusConfig: Record<Project['status'], { color: string; icon: React.React
   "Substantial": { color: 'bg-purple-600', icon: <CheckCircleIcon className="w-4 h-4 mr-2" /> },
   "In Development": { color: 'bg-yellow-600', icon: <XCircleIcon className="w-4 h-4 mr-2" /> },
   "Basic": { color: 'bg-gray-600', icon: <XCircleIcon className="w-4 h-4 mr-2" /> },
+  "Planned": { color: 'bg-sky-700', icon: <XCircleIcon className="w-4 h-4 mr-2" /> },
 };
 
 export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onSelectProject }) => {
