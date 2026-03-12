@@ -4,8 +4,8 @@
  * Returns true when query is empty.
  */
 export const fuzzyMatch = (query: string, text: string): boolean => {
+    query = query.trim().toLowerCase();
     if (!query) return true;
-    query = query.toLowerCase();
     text = text.toLowerCase();
     let queryIndex = 0;
     let textIndex = 0;
