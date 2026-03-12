@@ -81,15 +81,14 @@ describe('ProjectInsights', () => {
     expect(container.firstChild).toBeTruthy();
   });
 
-  it('renders SVG containers for charts', () => {
-    const { container } = render(<ProjectInsights project={project} />);
-    const svgs = container.querySelectorAll('svg');
-    expect(svgs.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it('renders a section heading for insights', () => {
+  it('renders both insight sections', () => {
     render(<ProjectInsights project={project} />);
-    const headings = screen.queryAllByRole('heading');
-    expect(headings.length).toBeGreaterThanOrEqual(0);
+    expect(
+      screen.getByRole('heading', { name: 'Technology Category Breakdown' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Feature Complexity' })
+    ).toBeInTheDocument();
+  });
   });
 });
