@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import CodeBlock from '../../../components/CodeBlock';
+import CodeBlock from '../../components/CodeBlock';
 
 const SHORT_CODE = 'line 1\nline 2\nline 3';
 const LONG_CODE = Array.from({ length: 15 }, (_, i) => `line ${i + 1}`).join('\n');
