@@ -120,9 +120,9 @@ describe('ProjectDetail', () => {
     expect(onSelectProject).toHaveBeenCalledWith('related-project');
   });
 
-  it('renders technology tags from the project', () => {
+  it('renders technologies from the project', () => {
     render(<ProjectDetail {...defaultProps} />);
-    // 'aws' appears in multiple places (tag button + metadata); check at least one exists
-    expect(screen.getAllByText('aws').length).toBeGreaterThan(0);
+    expect(screen.getByText('Python')).toBeInTheDocument();
+  });
   });
 });
