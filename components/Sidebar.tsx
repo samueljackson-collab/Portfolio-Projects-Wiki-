@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import ProjectPreviewCard from './ProjectPreviewCard';
 import type { Project } from '../types';
+import { fuzzyMatch } from '../src/utils/fuzzyMatch';
 
 interface SidebarProps {
   projects: Project[];
@@ -14,21 +15,6 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const fuzzyMatch = (query: string, text: string): boolean => {
-    if (!query) return true;
-    query = query.toLowerCase();
-    text = text.toLowerCase();
-    let queryIndex = 0;
-    let textIndex = 0;
-    while (queryIndex < query.length && textIndex < text.length) {
-        if (query[queryIndex] === text[textIndex]) {
-            queryIndex++;
-        }
-        textIndex++;
-    }
-    return queryIndex === query.length;
-};
 
 const getProjectIcon = (project: Project) => {
   const tags = project.tags.map(t => t.toLowerCase());
