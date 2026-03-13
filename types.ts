@@ -61,6 +61,7 @@ export interface ArchitectureDefinition {
 export interface TechnologyMetadata {
   tags: string[];
   category: 'Cloud & Infrastructure' | 'DevOps & CI/CD' | 'Data & AI' | 'Backend' | 'Security' | 'Blockchain' | 'Frontend & Web' | 'Quantum Computing' | 'HPC & Systems';
+  purpose?: string;
 }
 
 export interface RoadmapMilestone {
