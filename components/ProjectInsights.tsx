@@ -187,12 +187,12 @@ const FeatureComplexityChart: React.FC<{ features: string[] }> = ({ features }) 
             .style("fill", "#e5e7eb")
             .style("font-size", "12px")
             .style('cursor', 'pointer')
-            .on('mouseover', function(event, d) {
+            .on('mouseover', function(_event, d) {
                 d3.selectAll('.bar')
                   .filter(barData => (barData as { name: string }).name === d)
                   .attr('fill', '#5eead4');
             })
-            .on('mouseout', function(event, d) {
+            .on('mouseout', function(_event, d) {
                  d3.selectAll('.bar')
                   .filter(barData => (barData as { name: string }).name === d)
                   .attr('fill', '#2dd4bf');
@@ -215,7 +215,7 @@ const FeatureComplexityChart: React.FC<{ features: string[] }> = ({ features }) 
                 d3.select(this).attr("fill", "#2dd4bf");
                 setTooltipData(null);
             })
-            .transition().duration(800).delay((d, i) => i * 30)
+            .transition().duration(800).delay((_d, i) => i * 30)
             .attr("width", d => x(d.value));
 
         svg.append("text")

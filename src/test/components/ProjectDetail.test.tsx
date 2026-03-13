@@ -124,5 +124,4 @@ describe('ProjectDetail', () => {
     render(<ProjectDetail {...defaultProps} />);
     expect(screen.getByText('Python')).toBeInTheDocument();
   });
-  });
 });

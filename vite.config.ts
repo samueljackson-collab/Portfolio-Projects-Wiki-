@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [react()],
+    // Base path for GitHub Pages deployment: https://samueljackson-collab.github.io/Portfolio-Projects-Wiki-/
+    base: '/Portfolio-Projects-Wiki-/',
     server: {
       host: '0.0.0.0',
       port: 3000,

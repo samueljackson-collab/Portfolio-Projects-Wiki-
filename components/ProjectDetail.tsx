@@ -345,7 +345,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-gray-300 mb-4">ADR Relationship Graph</h3>
             <div className="p-4 bg-gray-900 rounded-xl overflow-hidden">
-                <AdrGraph content={project.adr || ''} />
+                <AdrGraph adrs={project.adrs!} />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-gray-300 mb-4">Decision Timeline</h3>
@@ -355,7 +355,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
 
       {project.adr && (!project.adrs || project.adrs.length === 0) && (
         <Section title="Architecture Decision Records" icon={<DecisionIcon />}>
-          <AdrGraph content={project.adr} />
+          <CodeBlock language="markdown" code={project.adr} />
         </Section>
       )}
 

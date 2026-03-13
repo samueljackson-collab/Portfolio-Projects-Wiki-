@@ -90,5 +90,4 @@ describe('ProjectInsights', () => {
       screen.getByRole('heading', { name: 'Feature Complexity' })
     ).toBeInTheDocument();
   });
-  });
 });
