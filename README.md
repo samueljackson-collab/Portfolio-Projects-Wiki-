@@ -1,62 +1,169 @@
 # Portfolio Projects Wiki
-Interactive, Wiki.js-inspired portfolio documentation studio for developers, recruiters, and technical reviewers.
 
-Explore structured, project-oriented knowledge pages with architecture context, implementation details, progress indicators, and technology deep dives.
+**An interactive knowledge base for exploring software engineering projects — no coding required.**
 
-## Table of Contents
-- [Why This Exists](#why-this-exists)
-- [What You Get](#what-you-get)
-- [Feature Breakdown](#feature-breakdown)
-- [Architecture Overview](#architecture-overview)
-- [Data & Rendering Flow](#data--rendering-flow)
-- [System Requirements](#system-requirements)
-- [Quick Start](#quick-start)
-- [Configuration Reference](#configuration-reference)
-- [Runtime Behavior](#runtime-behavior)
-- [Project Categories](#project-categories)
-- [Project Structure](#project-structure)
-- [Technology Stack](#technology-stack)
-- [Troubleshooting](#troubleshooting)
-- [Security & Operational Notes](#security--operational-notes)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
+> **Try it now (live, no setup needed):**
+> **[https://samueljackson-collab.github.io/Portfolio-Projects-Wiki-/](https://samueljackson-collab.github.io/Portfolio-Projects-Wiki-/)**
 
-## Why This Exists
-Keeping a portfolio technically useful is hard when project notes live in scattered docs or vague summaries. This project provides a single interactive knowledge base where each project includes meaningful engineering context:
+---
 
-- Problem framing and motivation
-- Architecture and implementation notes
-- Maturity/status tracking
-- Stack-level reference insights
-- Related project navigation
+## What Is This?
 
-Instead of maintaining many disconnected pages, content is modeled in TypeScript and rendered consistently through reusable UI components.
+This is a documentation website for a portfolio of software engineering projects. Each project has its own page explaining what it does, how it was built, what technologies it uses, and what decisions were made along the way.
 
-## What You Get
+Think of it like Wikipedia — but for one developer's projects. Click a project name, and you get a full breakdown of that project in plain language alongside technical details.
 
-| Capability                | Outcome                                                                 |
-| ------------------------- | ----------------------------------------------------------------------- |
-| Grouped project explorer  | Browse projects by maturity/status from a structured sidebar            |
-| Fuzzy search workflow     | Quickly locate projects by name, description, or tags                   |
-| Rich project detail view  | Read highlights, architecture context, and technical tradeoffs          |
-| Technology insight sections| Review deeper notes for stacks, tools, and implementation patterns      |
-| Responsive navigation     | Smooth mobile/desktop transitions with overlay and keyboard-close behavior|
+**Who is it for?**
+- **Recruiters and hiring managers** who want to understand what projects exist and what skills they demonstrate.
+- **Developers** who want to explore the architecture and implementation details.
+- **Anyone curious** about what these projects actually do.
 
-## Feature Breakdown
-1) **Guided Project Discovery**
-Sidebar groups projects by status and supports debounced fuzzy search to reduce noise in larger collections.
+---
 
-2) **Detail-First Project Presentation**
-`ProjectDetail` renders structured sections (highlights, metrics, architecture, and supporting technical context) for the selected project.
+## What Does It Look Like?
 
-3) **Visual Technology Context**
-`TechStackGraph` and insight components surface stack relationships and deeper explanatory context for better technical storytelling.
+The app has two panels: a sidebar on the left for browsing, and a detail view on the right that shows everything about the selected project.
 
-4) **Reliable App Orchestration**
-`App.tsx` coordinates selected project state, mobile sidebar behavior, and top-level layout rendering for a stable single-page experience.
+```
+┌─────────────────────┬──────────────────────────────────────────────────┐
+│  🔍 Search projects │  AWS Infrastructure Automation                   │
+│─────────────────────│  ● Production Ready  ████████████████████  100% │
+│  📁 Production Ready│                                                  │
+│    ▶ AWS Infra...   │  WHAT THIS PROJECT DOES                          │
+│    ▶ Database Mig.. │  Automates the creation of an entire AWS         │
+│    ▶ Kubernetes CI..│  cloud environment — servers, networking,        │
+│    ▶ DevSecOps Pipe.│  databases — from code. No manual clicking       │
+│─────────────────────│  in the AWS console required.                    │
+│  📁 Advanced        │                                                  │
+│    ▶ Blockchain Pl..│  TECHNOLOGIES USED                               │
+│    ▶ FamilyBridge.. │  [Terraform] [AWS CDK] [Python] [Bash]           │
+│─────────────────────│                                                  │
+│  📁 Substantial     │  KEY HIGHLIGHTS                                  │
+│    ▶ MLOps Platform │  • Multi-AZ VPC architecture                     │
+│    ▶ AI Chatbot...  │  • Managed EKS (Kubernetes) cluster              │
+│    ▶ Data Streaming │  • RDS PostgreSQL with automated backups         │
+│    ...              │                                                  │
+│─────────────────────│  ARCHITECTURE DECISIONS                          │
+│  📁 Basic           │  Why use three IaC tools (Terraform, CDK,        │
+│    ▶ Multi-Cloud... │  Pulumi)? Read the reasoning here.               │
+│    ▶ Autonomous Dev │                                                  │
+└─────────────────────┴──────────────────────────────────────────────────┘
+```
 
-## Architecture Overview
+---
+
+## How to Use This Wiki (Step-by-Step)
+
+No installation. No accounts. Just open the link.
+
+**Step 1 — Open the wiki**
+Go to [https://samueljackson-collab.github.io/Portfolio-Projects-Wiki-/](https://samueljackson-collab.github.io/Portfolio-Projects-Wiki-/)
+
+**Step 2 — Pick a project from the left sidebar**
+Projects are grouped by how complete they are:
+- **Production Ready** — fully built and deployed
+- **Advanced** — nearly complete, with solid foundations
+- **Substantial** — significant progress, most core features built
+- **Basic / Planned** — early-stage or conceptual
+
+Click any project name. The right panel immediately loads that project's full details.
+
+**Step 3 — Read the project page**
+Each project page includes:
+- **What it does** — plain English description
+- **Completion status** — shown as a progress bar (0–100%)
+- **Technologies used** — every tool and language involved
+- **Key features** — the main things the project can do
+- **Architecture overview** — how the pieces fit together
+- **Architecture Decision Records (ADRs)** — *why* specific technical choices were made (not just *what*)
+- **Security analysis** — a STRIDE threat model covering potential risks and how they're mitigated
+- **CI/CD workflow** — the automated build and deployment pipeline (where applicable)
+- **Roadmap** — what's planned next for the project
+
+**Step 4 — Search for anything**
+Use the search box at the top of the sidebar to filter by:
+- Project name (e.g., "Kubernetes")
+- Technology (e.g., "Terraform", "Python")
+- Tag or category (e.g., "security", "mlops", "blockchain")
+
+Results filter in real time as you type.
+
+**Step 5 — Explore the technology deep-dives**
+Some project pages include deeper explanations of technologies like Terraform, Kafka, or ArgoCD. These explain what the tool is, why it was chosen, real-world use cases, and pitfalls to avoid.
+
+---
+
+## Project Highlights
+
+Here are some of the most complete projects you can explore right now:
+
+| Project | What It Does | Status |
+|---------|-------------|--------|
+| AWS Infrastructure Automation | Automates building an entire AWS cloud environment from code | ✅ Production Ready |
+| Kubernetes CI/CD Pipeline | Automated code-to-deployment pipeline using GitOps | ✅ Production Ready |
+| Database Migration Platform | Migrates databases with zero downtime using Change Data Capture | ✅ Production Ready |
+| DevSecOps Pipeline | CI/CD pipeline with automated security scanning built in | ✅ Production Ready |
+| Secure-Deployer | Hardened deployment runner using short-lived credentials | ✅ Production Ready |
+| Advanced Monitoring & Observability | Unified metrics, logs, and traces with Prometheus and Grafana | ✅ Production Ready |
+| FamilyBridge Photos | Self-hosted photo sharing app designed for elderly users | 🔶 Advanced |
+| Advanced AI Chatbot | RAG-based chatbot that answers questions from a private knowledge base | 🔷 Substantial |
+| MLOps Platform | End-to-end machine learning workflow with drift detection | 🔷 Substantial |
+
+---
+
+## What Each Status Means
+
+| Status | Meaning |
+|--------|---------|
+| ✅ Production Ready | Fully built, tested, documented, and deployable |
+| 🔶 Advanced | Core functionality complete, minor gaps remain |
+| 🔷 Substantial | Most features implemented, still in active development |
+| 🟡 Basic | Foundation laid, significant work remaining |
+| 📋 Planned | Scoped and designed, not yet built |
+
+---
+
+## Running It Locally (For Developers)
+
+> This section is only needed if you want to run the wiki on your own machine. Most people can just use the live link above.
+
+### System Requirements
+
+| Requirement | Version |
+|-------------|---------|
+| Node.js | 18 or newer |
+| npm | 9 or newer |
+| Browser | Chrome, Firefox, or Safari (recent version) |
+
+### Quick Start
+
+**1. Install dependencies**
+```bash
+npm install
+```
+
+**2. Start the development server**
+```bash
+npm run dev
+```
+
+**3. Open in your browser**
+Navigate to [http://localhost:3000](http://localhost:3000)
+
+**4. Build for production**
+```bash
+npm run build
+```
+
+**5. Preview the production build**
+```bash
+npm run preview
+```
+
+---
+
+## Architecture Overview (For Developers)
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │                    React Single-Page App                  │
@@ -70,165 +177,110 @@ Sidebar groups projects by status and supports debounced fuzzy search to reduce 
 │             ▼                             ▼                │
 │   ┌──────────────────────────────────────────────────────┐  │
 │   │ App.tsx                                              │  │
-│   │ - selected project orchestration                    │  │
-│   │ - mobile sidebar open/close behavior                │  │
-│   │ - root layout and routing-by-state                  │  │
+│   │ - selected project state                            │  │
+│   │ - mobile sidebar behavior                          │  │
+│   │ - root layout                                      │  │
 │   └─────────┬────────────────────────────────────────────┘  │
 │             │                                               │
 │             ▼                                               │
 │   ┌──────────────────────────────────────────────────────┐  │
 │   │ constants.ts + types.ts                              │  │
-│   │ - project records                                    │  │
-│   │ - shared interfaces                                  │  │
+│   │ - all project data (29 projects)                    │  │
+│   │ - TypeScript interfaces                             │  │
 │   └──────────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────────┘
 ```
 
-## Data & Rendering Flow
-Project dataset load (`constants.ts`) ↓ App initializes selected project state ↓ Sidebar renders grouped + searchable navigation ↓ User selects project slug ↓ `ProjectDetail` renders project-specific sections ↓ Auxiliary components render deeper visuals/insights
+### Data & Rendering Flow
+Project data loads from `constants.ts` → App initializes state → Sidebar renders grouped navigation → User selects a project → `ProjectDetail` renders that project's sections → Visualization components render additional context
 
-## System Requirements
-
-| Requirement | Minimum | Notes                                     |
-| ----------- | ------- | ----------------------------------------- |
-| Node.js     | 18+     | Recommended current LTS                   |
-| npm         | 9+      | Bundled with Node.js                      |
-| Browser     | Modern Chromium / Firefox / Safari | Needed for local UI use |
-
-## Quick Start
-
-1) **Install dependencies**
-   ```bash
-   npm install
-   ```
-2) **Start development server**
-   ```bash
-   npm run dev
-   ```
-   By default, Vite is configured to run on `0.0.0.0:3000`.
-
-3) **Use the app**
-   - Open http://localhost:3000
-   - Select a project from the sidebar
-   - Use search to filter by name/description/tags
-   - Review architecture and stack insights in the detail pane
-
-4) **Build for production**
-   ```bash
-   npm run build
-   ```
-
-5) **Preview production build**
-   ```bash
-   npm run preview
-   ```
-
-## Configuration Reference
-**Vite Server Configuration**
-`vite.config.ts` currently sets:
-
-- Host: `0.0.0.0`
-- Port: `3000`
-- React plugin enabled (`@vitejs/plugin-react`)
-
-**Environment Defines**
-The config maps `GEMINI_API_KEY` from env into:
-- `process.env.API_KEY`
-- `process.env.GEMINI_API_KEY`
-
-Note: this project is currently a local data-driven wiki viewer and does not require runtime API calls for core browsing behavior.
-
-## Runtime Behavior
-**Search & Navigation**
-- Search is debounced before filtering.
-- Fuzzy matching checks project names, descriptions, and tags.
-- Sidebar groups and sorts projects by maturity status.
-
-**Responsive UX**
-- Mobile header includes a sidebar toggle.
-- Sidebar closes on selection, outside click, or Escape key.
-- Desktop breakpoint behavior automatically resets mobile sidebar visibility.
-
-**Rendering Model**
-- App state tracks active project by slug.
-- Detail view is selected via in-memory lookup from `PROJECTS_DATA`.
-- Content is rendered entirely client-side.
-
-## Project Categories
-Projects are grouped into the following status bands:
-
-- Production Ready
-- Advanced
-- Substantial
-- In Development
-- Basic
-
-## Project Structure
+### Project Structure
 ```
 .
-├── App.tsx
-├── index.tsx
-├── index.html
-├── constants.ts
-├── types.ts
-├── vite.config.ts
+├── App.tsx              # Root component, state management
+├── index.tsx            # React entry point
+├── index.html           # HTML shell
+├── constants.ts         # All project data (29 projects)
+├── types.ts             # TypeScript interfaces
+├── vite.config.ts       # Build configuration
 ├── package.json
-├── metadata.json
 └── components/
-    ├── Sidebar.tsx
-    ├── ProjectDetail.tsx
-    ├── ProjectInsights.tsx
-    ├── TechStackGraph.tsx
-    ├── ProgressBar.tsx
-    ├── CodeBlock.tsx
-    ├── Icons.tsx
-    └── ErrorBoundary.tsx
+    ├── Sidebar.tsx          # Navigation + search
+    ├── ProjectDetail.tsx    # Main project view
+    ├── ProjectInsights.tsx  # Analytics and insights
+    ├── TechStackGraph.tsx   # D3 technology visualization
+    ├── ProgressBar.tsx      # Completion percentage bar
+    ├── CodeBlock.tsx        # Syntax-highlighted code
+    ├── Icons.tsx            # Icon components
+    └── ErrorBoundary.tsx    # Error handling
 ```
 
-## Technology Stack
+### Technology Stack
 
-| Technology         | Version (declared) | Role                           |
-| ------------------ | ------------------ | ------------------------------ |
-| React              | 19.2.x             | UI rendering                   |
-| TypeScript         | 5.8.x              | Type safety and shared models  |
-| Vite               | 6.x                | Dev server and build tooling   |
-| @vitejs/plugin-react| 5.x               | React integration for Vite     |
-| D3                 | 7.x                | Graph and visualization rendering |
-| Tailwind CSS (CDN) | Runtime CDN        | Utility-first UI styling       |
+| Technology | Version | Role |
+|------------|---------|------|
+| React | 19.2.x | UI rendering |
+| TypeScript | 5.8.x | Type safety |
+| Vite | 6.x | Dev server and build tooling |
+| D3 | 7.x | Graph and visualization rendering |
+| Tailwind CSS (CDN) | Runtime | Utility-first UI styling |
 
+---
 
-## Troubleshooting
+## Troubleshooting (For Developers)
 
-| Problem                         | Likely Cause                                | Fix                                                          |
-| ------------------------------- | ------------------------------------------- | ------------------------------------------------------------ |
-| App not loading on `localhost:3000`| Dev server not running / port conflict      | Restart `npm run dev` and free conflicting port                |
-| Search feels unresponsive       | Debounce delay while typing                 | Pause briefly after typing; verify project data exists       |
-| Build fails                     | Dependency mismatch or TypeScript issues    | Reinstall deps and run `npm run build` again                  |
-| Blank/incorrect project page    | Invalid selected slug state                 | Refresh app and verify data integrity in `constants.ts`      |
+| Problem | Likely Cause | Fix |
+|---------|-------------|-----|
+| App not loading on `localhost:3000` | Dev server not running or port conflict | Run `npm run dev` and check for port conflicts |
+| Search feels slow | Expected — search uses a short debounce delay | Pause briefly after typing |
+| Build fails | TypeScript error or missing dependency | Run `npm install` then `npm run build` again |
+| Blank project page | Invalid project state | Refresh the page; check `constants.ts` data |
 
-**Debug Tips**
-- Run `npm run build` before sharing/deploying changes.
-- Check browser devtools console for runtime errors.
-- Keep project data shape aligned with `types.ts` contracts.
+**Debug tips:**
+- Run `npm run build` before deploying to catch type errors.
+- Check the browser console (F12) for runtime errors.
+- Run `npm test` to run the unit test suite.
 
-## Security & Operational Notes
-- This project is currently client-rendered and data-driven from repository sources.
-- Avoid committing secrets in any local `.env*` files.
-- Dev server binds to `0.0.0.0`; convenient for LAN testing, broader than `localhost`-only.
-- Tailwind utilities are loaded from CDN in `index.html`; move to local bundling for fully offline environments.
+---
+
+## Adding or Updating Projects (For Developers)
+
+All project data lives in `constants.ts`. Each project follows the `Project` interface defined in `types.ts`. To add a project:
+
+1. Add a new entry to the `ALL_PROJECTS_DATA` array in `constants.ts`.
+2. Follow the existing structure: `id`, `name`, `slug`, `description`, `status`, `completion_percentage`, `tags`, `technologies`, `features`, `key_takeaways`, `readme`.
+3. Run `npm run build` to validate your changes compile correctly.
+
+---
+
+## Security & Operational Notes (For Developers)
+
+- The app renders entirely client-side — no server, no database, no user data collected.
+- Dev server binds to `0.0.0.0:3000`, reachable on your local network (useful for testing on phones/tablets).
+- Tailwind CSS loads from CDN in `index.html`. For offline environments, install Tailwind locally.
+- Never commit secrets in `.env` files. The `GEMINI_API_KEY` config in `vite.config.ts` is reserved for future AI feature work; the current app does not make API calls.
+
+---
 
 ## Roadmap
-- [ ] Add URL-based routing for deep linking to specific project slugs.
-- [ ] Add export/share modes for project summaries.
-- [ ] Add tests for search, grouping, and selection behavior.
-- [ ] Externalize project content to markdown or CMS-backed sources.
-- [ ] Improve accessibility coverage and keyboard navigation patterns.
+
+- [ ] Add URL-based routing so you can share a direct link to a specific project.
+- [ ] Add export/share modes for project summaries (PDF, shareable link).
+- [ ] Externalize project content to Markdown files or a CMS for easier editing without code changes.
+- [ ] Improve keyboard navigation and accessibility coverage.
+- [ ] Add tests for search filtering and project grouping logic.
+
+---
 
 ## Contributing
-- Fork the repository and create a feature branch.
-- Keep changes focused and minimal.
-- Validate with at least `npm run build` before opening a PR.
-- Update `README.md` and related docs when architecture or behavior changes.
+
+1. Fork the repository and create a feature branch.
+2. Make focused changes — update `constants.ts` for data changes, components for UI changes.
+3. Validate with `npm run build` before opening a PR.
+4. Update this README if you change architecture or behavior.
+
+---
 
 ## License
-No license file is currently included. Add a `LICENSE` if you plan to distribute publicly.
+
+No license file is currently included. Add a `LICENSE` file before distributing publicly.
