@@ -441,7 +441,7 @@ Portfolio-Projects-Wiki-/
 
 ---
 
-## Troubleshooting
+All project data lives in `constants.ts`. Each project follows the `Project` interface defined in `types.ts`. To add a project:
 
 | Problem | Likely Cause | Fix |
 |---|---|---|
