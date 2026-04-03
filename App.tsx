@@ -38,31 +38,35 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-900 text-gray-200 font-sans">
-      <header className="md:hidden sticky top-0 bg-gray-800/80 backdrop-blur-sm z-20 flex items-center justify-between p-4 border-b border-gray-700">
-        <h1 className="text-lg font-bold text-white truncate">{selectedProject.name}</h1>
-        <button 
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-          className="p-2 rounded-md text-gray-300 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
-          aria-label="Toggle navigation"
-        >
-          <MenuIcon />
-        </button>
+    <div className="flex flex-col min-h-screen bg-gray-900 text-gray-200 font-sans">
+      <header className="sticky top-0 bg-gray-800/80 backdrop-blur-sm z-20 flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+            className="p-2 rounded-md text-gray-300 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            aria-label="Toggle navigation"
+          >
+            <MenuIcon />
+          </button>
+          <h1 className="text-lg font-bold text-white truncate">{selectedProject.name}</h1>
+        </div>
       </header>
       
-      <Sidebar 
-        projects={ALL_PROJECTS_DATA}
-        activeSlug={selectedProject.slug}
-        onSelectProject={handleSelectProject}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+      <div className="flex flex-1 overflow-hidden relative">
+        <Sidebar 
+          projects={ALL_PROJECTS_DATA}
+          activeSlug={selectedProject.slug}
+          onSelectProject={handleSelectProject}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
 
-      <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-        <ErrorBoundary>
-          {selectedProject && <ProjectDetail project={selectedProject} allProjects={ALL_PROJECTS_DATA} onSelectProject={handleSelectProject} />}
-        </ErrorBoundary>
-      </main>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto w-full">
+          <ErrorBoundary>
+            {selectedProject && <ProjectDetail project={selectedProject} allProjects={ALL_PROJECTS_DATA} onSelectProject={handleSelectProject} />}
+          </ErrorBoundary>
+        </main>
+      </div>
     </div>
   );
 };

@@ -236,10 +236,10 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
                 return meta ? CATEGORY_COLORS(meta.category) : "#374151";
             })
             .attr("stroke", d => {
-                if (d.type === 'adr') return d3.color('#FFD700')?.darker(0.7).toString() ?? '#FFD700';
+                if (d.type === 'adr') return d3.color('#FFD700')?.darker(0.7).toString();
                 if (d.group === 0) return "#14B8A6";
                 const meta = TECHNOLOGY_METADATA[d.id];
-                return meta ? d3.color(CATEGORY_COLORS(meta.category))?.darker(0.7).toString() ?? "#4A5568" : "#4A5568";
+                return meta ? d3.color(CATEGORY_COLORS(meta.category))?.darker(0.7).toString() : "#4A5568";
             })
             .attr("stroke-width", 2)
             .style("cursor", "pointer")
@@ -297,16 +297,16 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
                     if (!pinnedNode) {
                         setTooltipNode({ data: d, position: { top: event.clientY, left: event.clientX } });
                         node.style('opacity', n => (n === d || n.type === 'project') ? 1 : 0.3);
-                        link.style('stroke-opacity', l => ((l.source as unknown as NodeData).id === d.id || (l.target as unknown as NodeData).id === d.id) ? 0.9 : 0.2);
+                        link.style('stroke-opacity', l => ((l.source as NodeData).id === d.id || (l.target as NodeData).id === d.id) ? 0.9 : 0.2);
                     }
                     if (!pinnedNode || pinnedNode.id !== d.id) {
                          d3.select(this).select('circle').transition().duration(150)
-                            .attr('r', (d: unknown) => (d as NodeData).radius * 1.15)
+                            .attr('r', d => d.radius * 1.15)
                             .style('filter', 'drop-shadow(0 0 6px #2DD4BF)');
                     }
                 }
             })
-            .on('mouseout', function(_event, d) {
+            .on('mouseout', function(event, d) {
                 if (!pinnedNode) {
                     setTooltipNode(null);
                     node.style('opacity', 1);
@@ -314,7 +314,7 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
                 }
                 if (!pinnedNode || d.id !== pinnedNode.id) {
                      d3.select(this).select('circle').transition().duration(150)
-                        .attr('r', (d: unknown) => (d as NodeData).radius)
+                        .attr('r', d => d.radius)
                         .style('filter', 'none');
                 }
             })
@@ -399,7 +399,7 @@ const TechStackGraph: React.FC<TechStackGraphProps> = ({ project, activeTag, all
 
     useEffect(() => {
         const svg = d3.select(svgRef.current);
-        svg.selectAll<SVGGElement, NodeData>('g g').select('circle').interrupt().transition().duration(200).attr('r', d => d.radius).style('filter', null).attr("stroke", d => { if (d.group === 0) return "#14B8A6"; const meta = TECHNOLOGY_METADATA[d.id]; return meta ? d3.color(CATEGORY_COLORS(meta.category))?.darker(0.7).toString() ?? "#4A5568" : "#4A5568"; });
+        svg.selectAll<SVGGElement, NodeData>('g g').select('circle').interrupt().transition().duration(200).attr('r', d => d.radius).style('filter', null).attr("stroke", d => { if (d.group === 0) return "#14B8A6"; const meta = TECHNOLOGY_METADATA[d.id]; return meta ? d3.color(CATEGORY_COLORS(meta.category))?.darker(0.7).toString() : "#4A5568"; });
         if (pinnedNode) {
             const pinnedG = svg.selectAll<SVGGElement, NodeData>('g g').filter(d => d.id === pinnedNode.id);
             const pinnedCircle = pinnedG.select('circle');

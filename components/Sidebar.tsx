@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import ProjectPreviewCard from './ProjectPreviewCard';
 import type { Project } from '../types';
-import { fuzzyMatch } from '../src/utils/fuzzyMatch';
 
 interface SidebarProps {
   projects: Project[];
@@ -15,6 +14,21 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const fuzzyMatch = (query: string, text: string): boolean => {
+    if (!query) return true;
+    query = query.toLowerCase();
+    text = text.toLowerCase();
+    let queryIndex = 0;
+    let textIndex = 0;
+    while (queryIndex < query.length && textIndex < text.length) {
+        if (query[queryIndex] === text[textIndex]) {
+            queryIndex++;
+        }
+        textIndex++;
+    }
+    return queryIndex === query.length;
+};
 
 const getProjectIcon = (project: Project) => {
   const tags = project.tags.map(t => t.toLowerCase());
@@ -157,22 +171,19 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
     "Advanced",
     "Substantial",
     "In Development",
-    "Basic",
-    "Planned"
+    "Basic"
   ];
 
   const sidebarClasses = `
     w-full md:w-80 lg:w-96 bg-gray-800 p-4 md:p-6 flex-shrink-0 flex flex-col
     transition-transform duration-300 ease-in-out
-    md:sticky md:top-0 md:h-screen
-    fixed top-0 left-0 h-full z-30
-    ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-    md:translate-x-0
+    absolute top-0 left-0 h-full z-30
+    ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
   `;
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={onClose} aria-hidden="true"></div>}
+      {isOpen && <div className="absolute inset-0 bg-black/50 z-20" onClick={onClose} aria-hidden="true"></div>}
       <aside ref={sidebarRef} className={sidebarClasses}>
         {pinnedProject && (
           <ProjectPreviewCard 

@@ -9,7 +9,8 @@ export interface Project {
   name: string;
   slug: string;
   description: string;
-  status: "Production Ready" | "Advanced" | "Substantial" | "In Development" | "Basic" | "Planned";
+  about?: string;
+  status: "Production Ready" | "Advanced" | "Substantial" | "In Development" | "Basic";
   completion_percentage: number;
   tags: string[];
   github_path: string;
@@ -61,7 +62,6 @@ export interface ArchitectureDefinition {
 export interface TechnologyMetadata {
   tags: string[];
   category: 'Cloud & Infrastructure' | 'DevOps & CI/CD' | 'Data & AI' | 'Backend' | 'Security' | 'Blockchain' | 'Frontend & Web' | 'Quantum Computing' | 'HPC & Systems';
-  purpose?: string;
 }
 
 export interface RoadmapMilestone {
