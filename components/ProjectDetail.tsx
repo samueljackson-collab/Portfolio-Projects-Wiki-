@@ -624,6 +624,49 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
           </Section>
       )}
 
+      {project.completion_percentage < 100 && (
+          <Section title="What's Left to be Done" icon={<TargetIcon />}>
+              <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-5">
+                  <p className="text-gray-300 mb-4">
+                      This project is currently marked as <strong className="text-teal-400">{project.status}</strong> 
+                      &nbsp;({project.completion_percentage}% complete). The following key components are pending or under active development:
+                  </p>
+                  <ul className="space-y-3">
+                      {!project.readme && (
+                          <li className="flex items-start">
+                              <XCircleIcon />
+                              <span className="text-gray-300 ml-1"><strong>Comprehensive README:</strong> Detailed documentation, setup instructions, and architecture overview.</span>
+                          </li>
+                      )}
+                      {!project.adr && (!project.adrs || project.adrs.length === 0) && (
+                          <li className="flex items-start">
+                              <XCircleIcon />
+                              <span className="text-gray-300 ml-1"><strong>Architecture Decision Records:</strong> Documentation of key technical choices and their consequences.</span>
+                          </li>
+                      )}
+                      {!project.threatModel && (
+                          <li className="flex items-start">
+                              <XCircleIcon />
+                              <span className="text-gray-300 ml-1"><strong>Threat Model:</strong> Security analysis and documented mitigation strategies using STRIDE or similar methodologies.</span>
+                          </li>
+                      )}
+                      {!project.cicdWorkflow && (
+                          <li className="flex items-start">
+                              <XCircleIcon />
+                              <span className="text-gray-300 ml-1"><strong>CI/CD Workflow:</strong> Automated pipelines for testing, scanning, and deployment.</span>
+                          </li>
+                      )}
+                      {(!project.roadmap || project.roadmap.length === 0) && (
+                          <li className="flex items-start">
+                              <XCircleIcon />
+                              <span className="text-gray-300 ml-1"><strong>Project Roadmap:</strong> Defined milestones for future development phases.</span>
+                          </li>
+                      )}
+                  </ul>
+              </div>
+          </Section>
+      )}
+
       
       {relatedProjects.length > 0 && (
           <Section title="Related Projects" icon={<LinkIcon />}>
