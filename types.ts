@@ -9,7 +9,6 @@ export interface Project {
   name: string;
   slug: string;
   description: string;
-  about?: string;
   status: "Production Ready" | "Advanced" | "Substantial" | "In Development" | "Basic";
   completion_percentage: number;
   tags: string[];
@@ -24,6 +23,8 @@ export interface Project {
   roadmap?: RoadmapMilestone[];
   adrs?: ArchitectureDecisionRecord[];
   external_links?: ExternalLink[];
+  live_demo_url?: string;
+  documentation_url?: string;
 }
 
 export interface KeyConcept {

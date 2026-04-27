@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { 
   Cloud, Database, Shield, Box, Cpu, Wifi, Terminal, Activity, 
   BarChart, Zap, Image as ImageIcon, Blocks, LayoutTemplate, 
-  Smartphone, Server, FolderGit2, Info
+  Smartphone, Server, FolderGit2, Info, Github, ExternalLink
 } from 'lucide-react';
 import ProjectPreviewCard from './ProjectPreviewCard';
 import type { Project } from '../types';
@@ -37,52 +37,52 @@ const getProjectIcon = (project: Project) => {
   
   const iconClass = "w-4 h-4 mr-3 flex-shrink-0";
 
-  if (allKeywords.some(k => ['aws', 'cloud', 'azure', 'gcp', 'terraform'].includes(k))) 
+  if (allKeywords.some(k => ['aws', 'cloud', 'azure', 'gcp', 'terraform', 'pulumi', 'aws cdk', 'aws sam', 'aws iot core', 'aws route53', 'aws rds global', 'aws batch', 'eks', 'rds', 'dynamodb'].includes(k))) 
     return <Cloud className={`${iconClass} text-teal-400`} />;
     
-  if (allKeywords.some(k => ['database', 'sql', 'timescaledb', 'data-lake', 'postgres', 'redis', 'sqlite'].includes(k))) 
+  if (allKeywords.some(k => ['database', 'sql', 'timescaledb', 'data-lake', 'postgres', 'postgresql', 'redis', 'sqlite', 'vector db', 'aws-dms'].includes(k))) 
     return <Database className={`${iconClass} text-blue-400`} />;
     
-  if (allKeywords.some(k => ['security', 'cybersecurity', 'cryptography', 'devsecops', 'auth', 'oauth', 'vault'].includes(k))) 
+  if (allKeywords.some(k => ['security', 'cybersecurity', 'cryptography', 'devsecops', 'auth', 'oauth', 'vault', 'sast', 'dast', 'trivy', 'sonarqube', 'owasp zap', 'soc', 'siem', 'soar', 'post-quantum', 'kyber'].includes(k))) 
     return <Shield className={`${iconClass} text-red-400`} />;
     
-  if (allKeywords.some(k => ['kubernetes', 'docker', 'containers', 'helm', 'argo'].includes(k))) 
+  if (allKeywords.some(k => ['kubernetes', 'docker', 'containers', 'helm', 'argo', 'argocd', 'kustomize', 'kubernetes api', 'service-mesh', 'istio', 'consul', 'operators', 'kopf'].includes(k))) 
     return <Box className={`${iconClass} text-blue-500`} />;
     
-  if (allKeywords.some(k => ['ai', 'ml', 'machine-learning', 'llm', 'mlops', 'openai', 'gpt', 'rag'].includes(k))) 
+  if (allKeywords.some(k => ['ai', 'ml', 'machine-learning', 'llm', 'mlops', 'openai', 'gpt', 'rag', 'mlflow', 'optuna', 'scikit-learn', 'langchain', 'inference', 'onnx', 'onnx runtime', 'edge-ai'].includes(k))) 
     return <Cpu className={`${iconClass} text-purple-400`} />;
     
-  if (allKeywords.some(k => ['iot', 'mqtt', 'embedded'].includes(k))) 
+  if (allKeywords.some(k => ['iot', 'mqtt', 'embedded', 'azure iot edge'].includes(k))) 
     return <Wifi className={`${iconClass} text-orange-400`} />;
     
-  if (allKeywords.some(k => ['blockchain', 'web3', 'solidity', 'smart-contracts', 'ethereum'].includes(k))) 
+  if (allKeywords.some(k => ['blockchain', 'web3', 'solidity', 'smart-contracts', 'ethereum', 'hardhat', 'ethers.js', 'oracle', 'chainlink'].includes(k))) 
     return <Blocks className={`${iconClass} text-yellow-400`} />;
     
-  if (allKeywords.some(k => ['web', 'react', 'vue', 'frontend', 'next.js', 'ui', 'vitepress'].includes(k))) 
+  if (allKeywords.some(k => ['web', 'react', 'vue', 'frontend', 'next.js', 'ui', 'vitepress', 'vue.js', 'tailwind css', 'accessibility'].includes(k))) 
     return <LayoutTemplate className={`${iconClass} text-green-400`} />;
     
   if (allKeywords.some(k => ['mobile', 'ios', 'android', 'react-native'].includes(k))) 
     return <Smartphone className={`${iconClass} text-indigo-400`} />;
     
-  if (allKeywords.some(k => ['devops', 'ci-cd', 'automation', 'infrastructure', 'ansible', 'bash'].includes(k))) 
+  if (allKeywords.some(k => ['devops', 'ci-cd', 'automation', 'infrastructure', 'ansible', 'bash', 'github actions', 'github-actions', 'jinja2', 'pyyaml', 'typer', 'dr', 'reliability'].includes(k))) 
     return <Terminal className={`${iconClass} text-gray-400`} />;
     
-  if (allKeywords.some(k => ['monitoring', 'observability', 'grafana', 'prometheus'].includes(k))) 
+  if (allKeywords.some(k => ['monitoring', 'observability', 'grafana', 'prometheus', 'elk stack', 'loki', 'thanos', 'prometheus api'].includes(k))) 
     return <Activity className={`${iconClass} text-pink-400`} />;
     
-  if (allKeywords.some(k => ['data-engineering', 'analytics', 'streaming', 'kafka', 'spark'].includes(k))) 
+  if (allKeywords.some(k => ['data-engineering', 'analytics', 'streaming', 'kafka', 'spark', 'apache kafka', 'apache flink', 'flink', 'avro', 'databricks', 'delta lake', 'glue', 'athena'].includes(k))) 
     return <BarChart className={`${iconClass} text-indigo-400`} />;
     
-  if (allKeywords.some(k => ['serverless', 'lambda', 'functions'].includes(k))) 
+  if (allKeywords.some(k => ['serverless', 'lambda', 'functions', 'step-functions', 'step functions'].includes(k))) 
     return <Zap className={`${iconClass} text-yellow-500`} />;
     
-  if (allKeywords.some(k => ['quantum-computing', 'physics'].includes(k))) 
+  if (allKeywords.some(k => ['quantum-computing', 'physics', 'qiskit', 'research'].includes(k))) 
     return <Cpu className={`${iconClass} text-violet-400`} />;
     
-  if (allKeywords.some(k => ['photos', 'video', 'media', 'ffmpeg'].includes(k))) 
+  if (allKeywords.some(k => ['photos', 'video', 'media', 'ffmpeg', 'imagehash', 'video-processing'].includes(k))) 
     return <ImageIcon className={`${iconClass} text-pink-300`} />;
     
-  if (allKeywords.some(k => ['api', 'backend', 'server', 'node', 'go', 'python', 'java'].includes(k))) 
+  if (allKeywords.some(k => ['api', 'backend', 'server', 'node', 'go', 'python', 'java', 'fastapi', 'node.js', 'typescript', 'grpc', 'websockets', 'real-time', 'collaboration', 'crdt', 'redis'].includes(k))) 
     return <Server className={`${iconClass} text-slate-400`} />;
   
   return <FolderGit2 className={`${iconClass} text-gray-500`} />;
@@ -177,13 +177,15 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
   const sidebarClasses = `
     w-full md:w-80 lg:w-96 bg-gray-800 p-4 md:p-6 flex-shrink-0 flex flex-col
     transition-transform duration-300 ease-in-out
-    absolute top-0 left-0 h-full z-30
-    ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+    md:sticky md:top-0 md:h-screen
+    fixed top-0 left-0 h-full z-30
+    ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+    md:translate-x-0
   `;
 
   return (
     <>
-      {isOpen && <div className="absolute inset-0 bg-black/50 z-20" onClick={onClose} aria-hidden="true"></div>}
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={onClose} aria-hidden="true"></div>}
       <aside ref={sidebarRef} className={sidebarClasses}>
         {pinnedProject && (
           <ProjectPreviewCard 
@@ -270,6 +272,57 @@ const Sidebar: React.FC<SidebarProps> = ({ projects, activeSlug, onSelectProject
                                     }`}>
                                       {project.description}
                                     </p>
+                                    <div className="mt-2 flex items-center space-x-3">
+                                      {project.github_path && (
+                                        <a
+                                          href={`https://github.com/samueljackson-collab/Portfolio-Project/tree/main/${project.github_path}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-500 hover:text-white transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                          title="View on GitHub"
+                                        >
+                                          <Github className="w-3.5 h-3.5" />
+                                        </a>
+                                      )}
+                                      {project.live_demo_url && (
+                                        <a
+                                          href={project.live_demo_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-500 hover:text-teal-400 transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                          title="Live Demo"
+                                        >
+                                          <ExternalLink className="w-3.5 h-3.5" />
+                                        </a>
+                                      )}
+                                      {project.documentation_url && (
+                                        <a
+                                          href={project.documentation_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-500 hover:text-blue-400 transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                          title="Documentation"
+                                        >
+                                          <LayoutTemplate className="w-3.5 h-3.5" />
+                                        </a>
+                                      )}
+                                      {project.external_links?.map((link, idx) => (
+                                        <a
+                                          key={idx}
+                                          href={link.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-500 hover:text-white transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                          title={link.title}
+                                        >
+                                          <ExternalLink className="w-3.5 h-3.5" />
+                                        </a>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
                               </button>

@@ -225,151 +225,111 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
   const tagButtonBaseClasses = 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 ease-in-out transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:ring-teal-400 hover:-translate-y-px';
 
   return (
-    <article key={project.slug} className="max-w-6xl mx-auto animate-fade-in">
+    <article key={project.slug} className="max-w-4xl mx-auto animate-fade-in">
       <header className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-          <div className="flex-1">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">{project.name}</h1>
-            <p className="text-xl text-gray-300 mb-6 leading-relaxed">{project.description}</p>
-            
-            <div className="flex flex-wrap gap-2 mb-6">
-              {project.tags.map(tag => (
-                <button 
-                  key={tag} 
-                  onClick={() => handleSetActiveTag(tag === activeTag ? null : tag)}
-                  className={`${tagButtonBaseClasses} ${activeTag === tag ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'bg-gray-700 text-cyan-200 hover:bg-gray-600'}`}
-                  aria-pressed={activeTag === tag}
-                >
-                  <TagIcon tag={tag} /> {tag}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="w-full md:w-80 flex-shrink-0 space-y-4">
-            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
-              <div className="flex items-center space-x-3 mb-4">
-                  <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold text-white ${projectStatusConfig.color} rounded-full`}>
-                    {projectStatusConfig.icon}
-                    {project.status}
-                  </span>
-              </div>
-              <div className="mb-5">
-                <div className="flex justify-between text-sm text-gray-400 mb-1">
-                  <span>Completion</span>
-                  <span>{project.completion_percentage}%</span>
-                </div>
-                <ProgressBar percentage={project.completion_percentage} />
-              </div>
-
-              <div className="space-y-3">
-                <a href={`https://github.com/samueljackson-collab/Portfolio-Project/tree/main/${project.github_path}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full space-x-2 px-4 py-2.5 text-sm font-medium text-white bg-gray-700 rounded-lg border border-transparent hover:border-teal-500 hover:bg-gray-600 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={`View ${project.name} on GitHub (opens in a new tab)`}>
-                    <GitHubIcon />
-                    <span>View on GitHub</span>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">{project.name}</h1>
+        <p className="text-lg text-gray-400 mb-4">{project.description}</p>
+        <div className="flex flex-wrap gap-3 my-4">
+            <a href={`https://github.com/samueljackson-collab/Portfolio-Project/tree/main/${project.github_path}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md border border-transparent hover:border-teal-500 hover:bg-gray-600 transition-all duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={`View ${project.name} on GitHub (opens in a new tab)`}>
+                <GitHubIcon />
+                <span>View on GitHub</span>
+                <ExternalLinkIcon/>
+            </a>
+            {project.live_demo_url && (
+                <a href={project.live_demo_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md border border-transparent hover:bg-teal-500 transition-all duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={`View ${project.name} Live Demo (opens in a new tab)`}>
+                    <ExternalLinkIcon />
+                    <span>Live Demo</span>
+                </a>
+            )}
+            {project.documentation_url && (
+                <a href={project.documentation_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md border border-transparent hover:border-teal-500 hover:bg-gray-600 transition-all duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={`View ${project.name} Documentation (opens in a new tab)`}>
+                    <DocumentTextIcon />
+                    <span>Documentation</span>
                     <ExternalLinkIcon/>
                 </a>
-                {project.external_links?.map((link, idx) => (
-                  <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full space-x-2 px-4 py-2.5 text-sm font-medium text-teal-300 bg-teal-900/20 rounded-lg border border-teal-500/30 hover:bg-teal-900/40 hover:border-teal-500/50 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
-                      <LinkIcon className="w-4 h-4" />
-                      <span>{link.title}</span>
-                      <ExternalLinkIcon/>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
+            )}
+            <a href="https://github.com/samueljackson-collab/Portfolio-Project/archive/refs/heads/main.zip" target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-md border border-transparent hover:border-teal-500 hover:bg-gray-600 transition-all duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label="Download project source code as a zip file">
+                <DownloadIcon />
+                <span>Download Source</span>
+            </a>
+        </div>
+        <div className="flex items-center space-x-4 mb-4">
+            <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold text-white ${projectStatusConfig.color} rounded-full`}>
+              {projectStatusConfig.icon}
+              {project.status}
+            </span>
+            <ProgressBar percentage={project.completion_percentage} />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {project.tags.map(tag => (
+            <button 
+              key={tag} 
+              onClick={() => handleSetActiveTag(tag === activeTag ? null : tag)}
+              className={`${tagButtonBaseClasses} ${activeTag === tag ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'bg-gray-700 text-cyan-200 hover:bg-gray-600'}`}
+              aria-pressed={activeTag === tag}
+            >
+              <TagIcon tag={tag} /> {tag}
+            </button>
+          ))}
         </div>
       </header>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-        <div className="lg:col-span-2 space-y-12">
-          <Section title="About This Project" icon={<SummaryIcon />}>
-            <div className="prose prose-invert max-w-none">
-              {project.about ? (
-                <div className="text-lg leading-relaxed text-gray-300 whitespace-pre-line" dangerouslySetInnerHTML={{ __html: project.about }} />
-              ) : (
-                <p className="text-lg leading-relaxed text-gray-300">{project.description}</p>
-              )}
-            </div>
-            {project.key_takeaways && project.key_takeaways.length > 0 && (
-              <div className="mt-8 bg-gray-800/30 border border-gray-700/50 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-teal-400 mb-4 flex items-center">
-                  <GraduationCapIcon className="w-5 h-5 mr-2" />
-                  Key Achievements & Learnings
-                </h4>
-                <ul className="space-y-3">
-                  {project.key_takeaways.map((takeaway, index) => (
-                      <li key={index} className="flex items-start text-gray-300">
-                          <CheckCircleIcon className="w-5 h-5 text-teal-500 mr-3 mt-0.5 flex-shrink-0" />
-                          <span>{takeaway}</span>
-                      </li>
-                  ))}
-                </ul>
+      <Section title="Project Metadata" icon={<InfoIcon />}>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div className="bg-gray-800/50 p-4 rounded-lg">
+                  <dt className="font-semibold text-gray-400">Project ID</dt>
+                  <dd className="mt-1 text-base font-mono text-white">{project.id}</dd>
               </div>
-            )}
-          </Section>
-
-          {project.readme && (
-            <Section title="README" icon={<DocumentTextIcon />}>
-                <CodeBlock language="markdown" code={project.readme} />
-            </Section>
-          )}
-
-          <Section title="Problem Statement" icon={<TargetIcon />}>
-              <h3 className="text-xl font-semibold text-white mb-2">{problemContext.title}</h3>
-              <p className="text-lg leading-relaxed mb-6 whitespace-pre-line">{problemContext.context}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div className="bg-gray-800/40 border border-gray-700/50 rounded-xl p-5">
-                  <h4 className="text-lg font-semibold text-teal-400 mb-3">Business Impact</h4>
-                  <ul className="list-disc pl-5 space-y-2 text-gray-300"> {problemContext.business_impact.map(item => <li key={item} dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-100">$1</strong>') }} />)} </ul>
-                </div>
-                <div className="bg-gray-800/40 border border-gray-700/50 rounded-xl p-5">
-                  <h4 className="text-lg font-semibold text-teal-400 mb-3">Solution Approach</h4>
-                  <ul className="list-disc pl-5 space-y-2 text-gray-300"> {problemContext.solution_approach.map(item => <li key={item} dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-100">$1</strong>') }} />)} </ul>
-                </div>
+              <div className="bg-gray-800/50 p-4 rounded-lg">
+                  <dt className="font-semibold text-gray-400">Creation Date</dt>
+                  <dd className="mt-1 text-base text-gray-500 italic">Data Not Available</dd>
               </div>
-          </Section>
-        </div>
-
-        <div className="space-y-8">
-          <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-              <InfoIcon className="w-5 h-5 mr-2 text-teal-400" />
-              Project Metadata
-            </h3>
-            <dl className="space-y-4 text-sm">
-                <div>
-                    <dt className="font-medium text-gray-500 mb-1">Project ID</dt>
-                    <dd className="text-base font-mono text-gray-300 bg-gray-900/50 px-2 py-1 rounded inline-block">{project.id}</dd>
-                </div>
-                <div>
-                    <dt className="font-medium text-gray-500 mb-1">Last Modified</dt>
-                    <dd className="text-base text-gray-300">{new Date().toISOString().split('T')[0]}</dd>
-                </div>
-                <div>
-                    <dt className="font-medium text-gray-500 mb-1">Contributors</dt>
-                    <dd className="text-base text-gray-300">Samuel Jackson</dd>
-                </div>
-            </dl>
-          </div>
-
-          <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-              <ToolsIcon className="w-5 h-5 mr-2 text-teal-400" />
-              Technologies
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {project.technologies.map(tech => (
-                <span key={tech} className="px-3 py-1.5 bg-gray-900/50 border border-gray-700 text-gray-300 rounded-lg text-sm font-medium">
-                  {tech}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+              <div className="bg-gray-800/50 p-4 rounded-lg">
+                  <dt className="font-semibold text-gray-400">Last Modified</dt>
+                  <dd className="mt-1 text-base text-white">{new Date().toISOString().split('T')[0]}</dd>
+              </div>
+              <div className="bg-gray-800/50 p-4 rounded-lg">
+                  <dt className="font-semibold text-gray-400">Contributors</dt>
+                  <dd className="mt-1 text-base text-white">Samuel Jackson</dd>
+              </div>
+          </dl>
+      </Section>
       
-      <hr className="border-gray-700 my-12"/>
+      <hr className="border-gray-700 my-8"/>
+      
+      <Section title="About This Project" icon={<SummaryIcon />}>
+        <p className="text-lg leading-relaxed mb-6">{project.description}</p>
+        {project.key_takeaways && project.key_takeaways.length > 0 && (
+          <>
+            <h4 className="text-lg font-semibold text-gray-200 mt-6 mb-3">Key Achievements & Learnings</h4>
+            <ul className="space-y-3">
+              {project.key_takeaways.map((takeaway, index) => (
+                  <li key={index} className="flex items-start">
+                      <CheckCircleIcon />
+                      <span>{takeaway}</span>
+                  </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </Section>
+
+      {project.readme && (
+        <Section title="README" icon={<DocumentTextIcon />}>
+            <CodeBlock language="markdown" code={project.readme} />
+        </Section>
+      )}
+
+      <Section title="Problem Statement" icon={<TargetIcon />}>
+          <h3 className="text-xl font-semibold text-white mb-2">{problemContext.title}</h3>
+          <p className="text-lg leading-relaxed mb-6 whitespace-pre-line">{problemContext.context}</p>
+          <h4 className="text-lg font-semibold text-gray-200 mt-6 mb-3">Business Impact</h4>
+          <ul className="list-disc pl-5 space-y-2"> {problemContext.business_impact.map(item => <li key={item} dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-100">$1</strong>') }} />)} </ul>
+          <h4 className="text-lg font-semibold text-gray-200 mt-6 mb-3">Solution Approach</h4>
+          <ul className="list-disc pl-5 space-y-2"> {problemContext.solution_approach.map(item => <li key={item} dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-100">$1</strong>') }} />)} </ul>
+      </Section>
+      
+      <Section title="Learning Objectives" icon={<GraduationCapIcon />}>
           <p className="mb-4">By studying this project, you will learn to:</p>
           <ul className="space-y-3"> {problemContext.learning_objectives.map(obj => ( <li key={obj} className="flex items-start"><CheckCircleIcon /><span>{obj}</span></li> ))} </ul>
       </Section>
