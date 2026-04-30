@@ -91,42 +91,67 @@ const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.
     );
 };
 
+const adrStatusStyles: Record<string, string> = {
+    accepted: 'bg-green-500/10 text-green-400 border-green-500/20',
+    proposed: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    deprecated: 'bg-red-500/10 text-red-400 border-red-500/20',
+    superseded: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+    rejected: 'bg-red-900/20 text-red-500 border-red-900/30',
+};
+
 const AdrTimeline: React.FC<{ adrs: ArchitectureDecisionRecord[] }> = ({ adrs }) => {
     return (
         <div className="space-y-6">
-            {adrs.map((adr, index) => (
-                <div key={adr.id} className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 hover:bg-gray-800/60 transition-all duration-300">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center">
-                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 font-bold text-xs mr-3 border border-teal-500/30">
-                                {index + 1}
+            {adrs.map((adr, index) => {
+                const statusKey = adr.status.toLowerCase();
+                const statusStyle = adrStatusStyles[statusKey] || 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+
+                return (
+                    <div key={adr.id} className="bg-gray-800/40 border border-gray-700 rounded-xl p-5 hover:bg-gray-800/60 transition-all duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+                            <div className="flex items-center">
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 font-bold text-xs mr-3 border border-teal-500/30">
+                                    {index + 1}
+                                </span>
+                                <h3 className="text-lg font-bold text-white">{adr.title}</h3>
+                            </div>
+                            <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border self-start sm:self-auto ${statusStyle}`}>
+                                {adr.status}
                             </span>
-                            <h3 className="text-lg font-bold text-white">{adr.title}</h3>
                         </div>
-                        <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${
-                            adr.status.toLowerCase() === 'accepted' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                        }`}>
-                            {adr.status}
-                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Context</h4>
+                                <p className="text-gray-300 leading-relaxed bg-gray-900/30 p-3 rounded-lg border border-gray-700/30">{adr.context}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Decision</h4>
+                                <div className="text-gray-200 leading-relaxed font-medium bg-teal-500/5 p-3 rounded-lg border border-teal-500/10 text-teal-50/90">
+                                    {adr.decision}
+                                </div>
+                            </div>
+                        </div>
+                        {adr.consequences && (
+                            <div className="mt-4 pt-4 border-t border-gray-700/50">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Consequences</h4>
+                                <div className="text-gray-400 text-sm italic leading-relaxed bg-gray-900/50 p-3 rounded-lg border border-gray-700/30">
+                                    {adr.consequences}
+                                </div>
+                            </div>
+                        )}
+                        {adr.relations && adr.relations.length > 0 && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                {adr.relations.map((rel, idx) => (
+                                    <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md bg-gray-900 text-[10px] text-gray-400 border border-gray-700">
+                                        <LinkIcon className="w-3 h-3 mr-1 opacity-50" />
+                                        {rel.type}: {rel.related_adr_id}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Context</h4>
-                            <p className="text-gray-300 leading-relaxed">{adr.context}</p>
-                        </div>
-                        <div>
-                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Decision</h4>
-                            <p className="text-gray-300 leading-relaxed font-medium text-teal-100/90">{adr.decision}</p>
-                        </div>
-                    </div>
-                    {adr.consequences && (
-                        <div className="mt-3 pt-3 border-t border-gray-700/50">
-                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Consequences</h4>
-                            <p className="text-gray-400 text-xs italic leading-relaxed">{adr.consequences}</p>
-                        </div>
-                    )}
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 };
@@ -357,7 +382,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-gray-300 mb-4">ADR Relationship Graph</h3>
             <div className="p-4 bg-gray-900 rounded-xl overflow-hidden">
-                <AdrGraph content={project.adr || ''} />
+                <AdrGraph adrs={project.adrs} />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-gray-300 mb-4">Decision Timeline</h3>
@@ -367,7 +392,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjec
 
       {project.adr && (!project.adrs || project.adrs.length === 0) && (
         <Section title="Architecture Decision Records" icon={<DecisionIcon />}>
-          <AdrGraph content={project.adr} />
+          <CodeBlock language="markdown" code={project.adr} />
         </Section>
       )}
 
