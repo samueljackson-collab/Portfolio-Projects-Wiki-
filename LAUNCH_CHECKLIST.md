@@ -28,7 +28,7 @@ This is a static React SPA. Run through these checks before demo use.
 | 10 | Graph interactions | Hover or click nodes in D3 graph | Tooltip or highlight appears | |
 | 11 | Graph performance | View graph with all projects loaded | No jank or freeze — graph renders smoothly | |
 | 12 | Mermaid diagrams | Open a project that includes architecture diagrams | Mermaid diagrams render correctly (not raw text) | |
-| 13 | Mermaid in multiple projects | Check 2-3 different projects with diagrams | All render without errors | |
+| 13 | Mermaid rendering | Verify the ADR graph renders without console errors | Graph renders smoothly with correct styling | |
 
 ## 4. Data & Content
 
