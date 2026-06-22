@@ -16,7 +16,7 @@ This is a static React SPA. Run through these checks before demo use.
 |---|---|---|---|---|
 | 4 | All projects load | Open the main projects view | All portfolio projects appear with title, description, status | |
 | 5 | Project detail view | Click any project | Detail panel/page opens with full info | |
-| 6 | Sidebar navigation | Click different categories in sidebar | View updates to show matching projects | |
+| 6 | Sidebar navigation | Click different tags in sidebar | View updates to show matching projects | |
 | 7 | Sidebar search | Type a keyword in the search bar | Projects filter in real-time by matching text | |
 | 8 | Project status badges | View project cards | Status badges (Active/Complete/Beta) display correctly | |
 
