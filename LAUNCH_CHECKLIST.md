@@ -24,7 +24,7 @@ This is a static React SPA. Run through these checks before demo use.
 
 | # | Feature | Steps | Expected | Pass/Fail |
 |---|---|---|---|---|
-| 9 | D3 dependency graph | Navigate to the graph/relationship view | D3 graph renders, nodes and edges visible | |
+| 9 | D3 dependency graph | Scroll to the Tech Stack Selection section in any project detail view | D3 graph renders, nodes and edges visible | |
 | 10 | Graph interactions | Hover or click nodes in D3 graph | Tooltip or highlight appears | |
 | 11 | Graph performance | View graph with all projects loaded | No jank or freeze — graph renders smoothly | |
 | 12 | Mermaid diagrams | Open a project that includes architecture diagrams | Mermaid diagrams render correctly (not raw text) | |
