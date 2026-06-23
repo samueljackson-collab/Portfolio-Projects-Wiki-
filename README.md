@@ -51,10 +51,16 @@ Sidebar groups projects by status and supports debounced fuzzy search to reduce 
 `ProjectDetail` renders structured sections (highlights, metrics, architecture, and supporting technical context) for the selected project.
 
 3) **Visual Technology Context**
-`TechStackGraph` and insight components surface stack relationships and deeper explanatory context for better technical storytelling.
+`TechStackGraph`, `AdrGraph`, `CicdWorkflowDiagram`, `TagCloud`, and insight components surface stack relationships, architecture decisions, CI/CD pipelines, and deeper explanatory context for better technical storytelling.
 
-4) **Reliable App Orchestration**
+4) **Roadmap & Decision History**
+`ProjectRoadmap` and `Roadmap` render milestone timelines, while `AdrGraph` visualizes architecture decision records (ADRs) and their relationships for projects that define them.
+
+5) **Reliable App Orchestration**
 `App.tsx` coordinates selected project state, mobile sidebar behavior, and top-level layout rendering for a stable single-page experience.
+
+6) **Static Wiki Export**
+`exportWiki.ts` (run via `npm run export-wiki`) generates Markdown pages for each project under `docs/projects/`, suitable for publishing as a GitHub Pages wiki.
 
 ## Architecture Overview
 ```
@@ -123,6 +129,12 @@ Project dataset load (`constants.ts`) ↓ App initializes selected project state
    npm run preview
    ```
 
+5) **Export the wiki to Markdown (optional)**
+   ```bash
+   npm run export-wiki
+   ```
+   Generates `docs/index.md` and one Markdown page per project under `docs/projects/`, ready for GitHub Pages.
+
 ## Configuration Reference
 **Vite Server Configuration**
 `vite.config.ts` currently sets:
@@ -155,7 +167,7 @@ Note: this project is currently a local data-driven wiki viewer and does not req
 - Content is rendered entirely client-side.
 
 ## Project Categories
-Projects are grouped into the following status bands:
+The dataset in `constants.ts` currently includes 30 projects, grouped into the following status bands:
 
 - Production Ready
 - Advanced
@@ -171,14 +183,29 @@ Projects are grouped into the following status bands:
 ├── index.html
 ├── constants.ts
 ├── types.ts
+├── exportWiki.ts
+├── analyze.js
 ├── vite.config.ts
 ├── package.json
 ├── metadata.json
+├── docs/
+│   ├── index.md
+│   └── projects/
+│       └── *.md            (generated via `npm run export-wiki`)
+├── scripts/
+│   └── exportWiki.ts
 └── components/
     ├── Sidebar.tsx
     ├── ProjectDetail.tsx
     ├── ProjectInsights.tsx
+    ├── ProjectPreview.tsx
+    ├── ProjectPreviewCard.tsx
+    ├── ProjectRoadmap.tsx
+    ├── Roadmap.tsx
     ├── TechStackGraph.tsx
+    ├── AdrGraph.tsx
+    ├── CicdWorkflowDiagram.tsx
+    ├── TagCloud.tsx
     ├── ProgressBar.tsx
     ├── CodeBlock.tsx
     ├── Icons.tsx
@@ -191,9 +218,13 @@ Projects are grouped into the following status bands:
 | ------------------ | ------------------ | ------------------------------ |
 | React              | 19.2.x             | UI rendering                   |
 | TypeScript         | 5.8.x              | Type safety and shared models  |
-| Vite               | 6.x                | Dev server and build tooling   |
-| @vitejs/plugin-react| 5.x               | React integration for Vite     |
-| D3                 | 7.x                | Graph and visualization rendering |
+| Vite               | 5.x                | Dev server and build tooling   |
+| @vitejs/plugin-react| 4.x               | React integration for Vite     |
+| D3 / d3-cloud      | 7.x                | Graph, tag cloud, and visualization rendering |
+| Mermaid            | 11.x               | Diagram rendering (e.g. CI/CD workflow diagrams) |
+| lucide-react       | 0.577.x            | Icon components                |
+| js-yaml            | 4.x                | YAML parsing utilities          |
+| ESLint + typescript-eslint | 9.x / 8.x  | Linting (`npm run lint`)        |
 | Tailwind CSS (CDN) | Runtime CDN        | Utility-first UI styling       |
 
 
@@ -210,6 +241,7 @@ Projects are grouped into the following status bands:
 - Run `npm run build` before sharing/deploying changes.
 - Check browser devtools console for runtime errors.
 - Keep project data shape aligned with `types.ts` contracts.
+- Run `node analyze.js` to print a summary of which projects in `constants.ts` are missing optional fields (`readme`, `adr`, `threatModel`, `cicdWorkflow`, `roadmap`, `adrs`).
 
 ## Security & Operational Notes
 - This project is currently client-rendered and data-driven from repository sources.
